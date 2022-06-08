@@ -1,5 +1,5 @@
-slide_dir: /home/local/INSERM/kevin.cortacero/1_WORKSPACE/Repositories/LabelSlide-main/dataset
-label_dir: /home/local/INSERM/kevin.cortacero/1_WORKSPACE/Repositories/LabelSlide-main/label
+slide_dir: ./slides
+label_dir: ./labels
 class:
 - id: 0
   name: A

@@ -2,6 +2,7 @@ import os
 os.environ['PATH'] = r".\bin" + ";" + os.environ['PATH']
 
 from flask import Flask, abort, make_response, url_for, request, send_from_directory
+from flask_cors import CORS
 from io import BytesIO
 
 import openslide
@@ -20,8 +21,10 @@ DEEPZOOM_OVERLAP = 1
 DEEPZOOM_LIMIT_BOUNDS = True
 DEEPZOOM_TILE_QUALITY = 75
 SLIDE_NAME = 'slide'
+fileExtensionAvailable = ('.png', '.jpg', '.jpeg','.mrxs')
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_object(__name__)
 app.config.from_envvar('DEEPZOOM_TILER_SETTINGS', silent=True)
 
@@ -58,6 +61,19 @@ def load_slide(file):
     except (KeyError, ValueError):
         app.slide_mpp = 0
         return 0
+
+
+@app.route('/fileExplorer', methods=['POST'])
+def getfiles():
+    request_json = request.get_json()
+    current_path = request_json.get('path')
+    print(current_path)
+    if(current_path is None):
+        current_path = "/home/david/workspace/Seadra/"
+    listFiles = os.listdir(current_path)#current_path)
+    onlyfiles = [f for f in listFiles if os.path.isfile(os.path.join(current_path, f)) & f.lower().endswith(fileExtensionAvailable)]
+    onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyfiles)]
+    return {'files':onlyfiles,'dirs':onlyDirs,'currentPath':current_path}
 
 @app.route('/get_slide_info/<id>')
 def getSlideInfo(id):
