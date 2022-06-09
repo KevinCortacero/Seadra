@@ -7,15 +7,18 @@
   import axios from 'axios'
 
   export default {
-    data: () => ({ 
+    data: () => ({
+      image_directory: "seadra-local/dataset/",
+      image_name: "693f5bbb777dcf650ce6c75f42919794.png",
       options: {
         id: "openseadragon",
         timeout: 120000,
         animationTime: 0.5,
         blendTime: 0.1,
         constrainDuringPan: true,
+        minZoomPixelRatio: 0.9,
         maxZoomPixelRatio: 2,
-        defaultZoomLevel: 1,
+        defaultZoomLevel: 0,
         homeFillsViewer: true,
         minZoomLevel: 1,
         visibilityRatio: 1,
@@ -29,9 +32,10 @@
      }),
     methods: {
       openSlide(path) {
-        var url = "http://localhost:4000/get_slide_info/"+window.btoa(unescape(encodeURIComponent( path ))).slice(0, -2)
-        console.log(url)
-        axios.get(url).then((result) => {
+        var request_url = "http://localhost:4000/get_slide_info/"
+        request_url += window.btoa(unescape(encodeURIComponent(path)))
+        console.log(request_url)
+        axios.get(request_url).then((result) => {
           console.log(result.data)
           this.viewer.open("http://localhost:4000"+result.data.slide);
           //this.viewer.scalebar({pixelsPerMeter: result.mpp ? (1e6 / result.mpp) : 0});
@@ -44,7 +48,7 @@
       this.$store.commit('INIT_OSD', this.viewer)
 
       //just for test
-      this.openSlide("/home/david/Pictures/labelomon/SB_SBLAMBatch-1_170102433.mrxs")
+      this.openSlide(this.image_directory + this.image_name)
     }
   }
 </script>
