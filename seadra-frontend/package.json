@@ -13,6 +13,8 @@
   "dependencies": {
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
+    "fabric": "^5.2.1",
+    "openseadragon": "^3.1.0",
     "vue": "^2.6.14",
     "vuetify": "^2.6.0"
   },
@@ -31,7 +33,7 @@
     "vue-template-compiler": "^2.6.14",
     "vuetify-loader": "^1.7.0"
   },
-  "proxy":"http://localhost:4000",
+  "proxy": "http://localhost:4000",
   "eslintConfig": {
     "root": true,
     "env": {

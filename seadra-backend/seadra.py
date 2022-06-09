@@ -14,6 +14,8 @@ import re
 from unicodedata import normalize
 from label_tool import LabelTool
 import json
+import base64
+from urllib.parse import unquote
 
 DEEPZOOM_SLIDE = None
 DEEPZOOM_FORMAT = 'jpeg'
@@ -22,6 +24,8 @@ DEEPZOOM_OVERLAP = 1
 DEEPZOOM_LIMIT_BOUNDS = True
 DEEPZOOM_TILE_QUALITY = 75
 SLIDE_NAME = 'slide'
+
+
 fileExtensionAvailable = ('.png', '.jpg', '.jpeg','.mrxs')
 
 app = Flask(__name__)
@@ -76,13 +80,15 @@ def getfiles():
     onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyfiles)]
     return {'files':onlyfiles,'dirs':onlyDirs,'currentPath':current_path}
 
-@app.route('/get_slide_info/<id>')
-def getSlideInfo(id):
-    file = label_tool.get_slide_file(id)
+@app.route('/get_slide_info/<path>')
+def getSlideInfo(path):
+    path += '=='
+    file = base64.b64decode(path).decode("utf-8")
     mpp = load_slide(file)
     info = {}
     info['slide'] = url_for('dzi', slug=SLIDE_NAME)
     info['mpp'] = str(mpp)
+    print(info)
     return info
 
 
