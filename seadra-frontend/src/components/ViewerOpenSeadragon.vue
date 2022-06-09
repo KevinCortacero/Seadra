@@ -5,6 +5,7 @@
 <script>
   import OpenSeadragon from 'openseadragon'
   import axios from 'axios'
+
   export default {
     data: () => ({ 
       options: {
@@ -24,7 +25,7 @@
         rotationIncrement: 0,
         showNavigator: true,
         //navigatorId: navDivID //id div minimap ???
-      }
+      },
      }),
     methods: {
       openSlide(path) {
@@ -40,6 +41,7 @@
     mounted() {
       this.viewer = OpenSeadragon(this.options);
       this.viewer.canvas.id = "openseadragon_canvas"
+      this.$store.commit('INIT_OSD', this.viewer)
 
       //just for test
       this.openSlide("/home/david/Pictures/labelomon/SB_SBLAMBatch-1_170102433.mrxs")
