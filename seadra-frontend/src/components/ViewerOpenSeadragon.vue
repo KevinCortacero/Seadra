@@ -5,10 +5,10 @@
 <script>
   import OpenSeadragon from 'openseadragon'
   import axios from 'axios'
+  import { mapState } from 'vuex';
 
   export default {
     data: () => ({
-      request_base_url: "http://localhost:4000/",
       options: {
         id: "openseadragon",
         timeout: 120000,
@@ -28,17 +28,23 @@
         //navigatorId: navDivID //id div minimap ???
       },
      }),
+    computed: mapState(['filepath']),
+    watch: {
+      filepath(newFilepath){
+        this.read_slide(newFilepath)
+      }
+    },
     methods: {
       read_slide(filepath) {
-        var request_url = this.request_base_url + "get_slide_infos/"
-        request_url += window.btoa(unescape(encodeURIComponent(filepath)))//.slice(0, -2)
-        console.log("read slide: " + request_url)
+        var request_url = this.$request_base_url + "get_slide_infos/"
+        request_url += window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')
+        console.log("read slide: " , request_url)
         axios.get(request_url).then((result) => {
           console.log(result.data)
           // this.viewer = OpenSeadragon(this.options);
           // this.viewer.canvas.id = "openseadragon_canvas"
           // this.$store.commit('INIT_OSD', this.viewer)
-          this.viewer.open(this.request_base_url+result.data.slide);
+          this.viewer.open(this.$request_base_url+result.data.slide);
           //this.viewer.scalebar({pixelsPerMeter: result.mpp ? (1e6 / result.mpp) : 0});
         });
       },
@@ -47,10 +53,12 @@
       this.viewer = OpenSeadragon(this.options);
       this.viewer.canvas.id = "openseadragon_canvas"
       this.$store.commit('INIT_OSD', this.viewer)
+
+      /*
       this.$root.$on("on_image_changed", (data) => {
         console.log(data["filepath"]);
         this.read_slide(data["filepath"])
-      });
+      });*/
     }
   }
 </script>

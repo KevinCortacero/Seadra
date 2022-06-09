@@ -6,9 +6,25 @@
       tile
     >
       <v-list flat>
-        <v-subheader>FILES</v-subheader>
-        <v-list-item-group mandatory v-model="selected_file" color="primary" @change="change_file()">
-        <v-list-item v-for="(filename, i) in files" :key="i">
+        <v-subheader v-text="current_dir"></v-subheader>
+        <v-list-item-group mandatory color="primary">
+        <v-list-item @click="goback()">
+            <v-list-item-icon>
+              <v-icon> mdi-folder-arrow-up </v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>..</v-list-item-title>
+            </v-list-item-content>
+        </v-list-item>
+        <v-list-item v-for="(foldername, i) in folders" :key="i" @click="load_dir(foldername)">
+            <v-list-item-icon>
+              <v-icon> mdi-folder </v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title v-text="foldername"></v-list-item-title>
+            </v-list-item-content>
+        </v-list-item>
+        <v-list-item v-for="(filename, i) in files" :key="i+filename.length" @click="load_file(filename)">
             <v-list-item-icon>
               <v-icon> mdi-image </v-icon>
             </v-list-item-icon>
@@ -26,26 +42,45 @@
 
   export default {
     data: () => ({
-        request_base_url: "http://localhost:4000/",
-        request_name: "list_files",
-        directory: "seadra-local/dataset/",
-        selected_file: 0,
-        files: []
+        directory: "seadra-local/dataset",
+        files: [],
+        folders :[]
     }),
+    computed:{
+      current_dir(){
+        let dirs = this.directory.split('/')
+        return dirs[dirs.length-1]
+        }
+    },
     methods: {
-        list_files(){
-            axios.post(this.request_base_url + this.request_name, {'directory': this.directory})
+
+        load_file(filename){
+          this.$store.commit('CHANGE_FILEPATH', this.directory+'/'+filename)
+        },
+        load_dir(foldername){
+          axios.post(this.$request_base_url + "list_files", {'directory': this.directory+'/'+foldername})
             .then( result =>{
                 this.files = result.data.files;
-            })},
-        change_file(){
-            //TODO: use store ?
-            var data = {
-                "filepath": this.directory + this.files[this.selected_file]
-            }
-            console.log(data)
-            this.$root.$emit("on_image_changed", data);
-        }
+                this.folders = result.data.folders;
+                this.directory = result.data.currentPath;
+            })
+        },
+        goback(){
+          axios.post(this.$request_base_url + "list_files", {'directory': this.directory+'/..'})
+            .then( result =>{
+                this.files = result.data.files;
+                this.folders = result.data.folders;
+                this.directory = result.data.currentPath;
+            })
+        },
+        list_files(){
+          axios.post(this.$request_base_url + "list_files", {'directory': this.directory})
+          .then( result =>{
+              this.files = result.data.files;
+              this.folders = result.data.folders;
+              this.directory = result.data.currentPath;
+          })
+        },
     },
     mounted(){
       this.list_files()

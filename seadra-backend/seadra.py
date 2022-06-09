@@ -78,11 +78,11 @@ def load_slide(file):
 @app.route('/list_files', methods=['POST'])
 def list_files():
     request_json = request.get_json()
-    current_path = request_json.get('directory')
+    current_path = os.path.abspath(request_json.get('directory'))
     listFiles = os.listdir(current_path)
     onlyfiles = [f for f in listFiles if os.path.isfile(os.path.join(current_path, f)) & f.lower().endswith(fileExtensionAvailable)]
     onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyfiles)]
-    return {'files': onlyfiles, 'dirs': onlyDirs, 'currentPath': current_path}
+    return {'files': onlyfiles, 'folders': onlyDirs, 'currentPath': current_path}
 
 
 @app.route('/get_slide_infos/<path>')
