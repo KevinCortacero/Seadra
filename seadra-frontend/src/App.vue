@@ -4,7 +4,7 @@
       v-model="drawer"
       app
     >
-      <annotation-open-seadragon />
+      
     </v-navigation-drawer>
 
     <v-app-bar app>
@@ -16,6 +16,10 @@
     <v-main>
       <viewer-open-seadragon />
     </v-main>
+
+    <v-navigation-drawer app permanent right>
+      <annotation-open-seadragon />
+    </v-navigation-drawer>
   </v-app>
 </template>
 

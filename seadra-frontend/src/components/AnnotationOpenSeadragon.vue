@@ -1,13 +1,34 @@
 <template>
-      
-      <div><!-- panel buttun tool --></div>
+    <v-card flat class="py-12">
+        <v-card-text>
+        <v-row align="center" justify="center">
+            <v-btn-toggle v-model="selected_tool" rounded color="primary">
+            <v-btn>
+                <v-icon>mdi-shape-rectangle-plus</v-icon>
+            </v-btn>
+            <v-btn>
+                <v-icon>mdi-vector-polygon</v-icon>
+            </v-btn>
+            <v-btn>
+                <v-icon>mdi-delete</v-icon>
+            </v-btn>
+            <v-btn>
+                <v-icon>mdi-arrange-bring-forward</v-icon>
+            </v-btn>
+            <v-btn>
+                <v-icon>mdi-arrange-send-backward</v-icon>
+            </v-btn>
+            </v-btn-toggle>
+        </v-row>
+        </v-card-text>
+  </v-card>
 </template>
 
 <script>
     import { fabric } from 'fabric'
     export default {
         data: () => ({ 
-
+            selected_tool: undefined,
         }),
         methods: {
 
