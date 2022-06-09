@@ -26,7 +26,7 @@ DEEPZOOM_TILE_QUALITY = 75
 SLIDE_NAME = 'slide'
 
 
-fileExtensionAvailable = ('.png', '.jpg', '.jpeg','.mrxs')
+fileExtensionAvailable = ('.png', '.jpg', '.jpeg', '.mrxs', '.tif', ".svs")
 
 app = Flask(__name__)
 CORS(app)
@@ -50,8 +50,15 @@ def load_slide(file):
     }
     opts = dict((v, app.config[k]) for k, v in config_map.items())
     slide = open_slide(slidefile)
-    left = slide.properties[openslide.PROPERTY_NAME_BOUNDS_X]
-    top = slide.properties[openslide.PROPERTY_NAME_BOUNDS_Y]
+    try:
+        left = slide.properties[openslide.PROPERTY_NAME_BOUNDS_X]
+    except KeyError:
+        left = 0
+
+    try:
+        top = slide.properties[openslide.PROPERTY_NAME_BOUNDS_Y]
+    except KeyError:
+        top = 0
     
     app.slides = {
         SLIDE_NAME: DeepZoomGenerator(slide, **opts),
@@ -68,28 +75,26 @@ def load_slide(file):
         return 0
 
 
-@app.route('/fileExplorer', methods=['POST'])
-def getfiles():
+@app.route('/list_files', methods=['POST'])
+def list_files():
     request_json = request.get_json()
-    current_path = request_json.get('path')
-    print(current_path)
-    if(current_path is None):
-        current_path = "/home/david/workspace/Seadra/"
-    listFiles = os.listdir(current_path)#current_path)
+    current_path = request_json.get('directory')
+    listFiles = os.listdir(current_path)
     onlyfiles = [f for f in listFiles if os.path.isfile(os.path.join(current_path, f)) & f.lower().endswith(fileExtensionAvailable)]
     onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyfiles)]
-    return {'files':onlyfiles,'dirs':onlyDirs,'currentPath':current_path}
+    return {'files': onlyfiles, 'dirs': onlyDirs, 'currentPath': current_path}
 
-@app.route('/get_slide_info/<path>')
-def getSlideInfo(path):
+
+@app.route('/get_slide_infos/<path>')
+def get_slide_infos(path):
     path += '=='
     file = base64.b64decode(path).decode("utf-8")
     mpp = load_slide(file)
-    info = {}
-    info['slide'] = url_for('dzi', slug=SLIDE_NAME)
-    info['mpp'] = str(mpp)
-    print(info)
-    return info
+    infos = {
+        'slide': url_for('dzi', slug=SLIDE_NAME),
+        'mpp': str(mpp)
+    }
+    return infos
 
 
 @app.route('/get_dir_config', methods=['get'])
