@@ -103,6 +103,7 @@ celerybeat.pid
 
 # Environments
 seadra-env/
+seadra-local/
 .env
 .venv
 env/
