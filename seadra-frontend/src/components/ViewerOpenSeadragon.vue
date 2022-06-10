@@ -21,10 +21,11 @@
         minZoomLevel: 1,
         visibilityRatio: 1,
         zoomPerScroll: 2,
-        autoResize: false,
+        autoResize: true,
         showNavigationControl: false,
         rotationIncrement: 0,
         showNavigator: true,
+        preserveImageSizeOnResize:true
         //navigatorId: navDivID //id div minimap ???
       },
      }),
@@ -53,7 +54,6 @@
       this.viewer = OpenSeadragon(this.options);
       this.viewer.canvas.id = "openseadragon_canvas"
       this.$store.commit('INIT_OSD', this.viewer)
-
       /*
       this.$root.$on("on_image_changed", (data) => {
         console.log(data["filepath"]);
