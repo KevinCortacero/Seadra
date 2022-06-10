@@ -13,7 +13,6 @@
 
     <!-- Plain mode -->
 
-
     <v-list flat>
       <v-subheader v-text="current_dir"></v-subheader>
       <v-list-item-group mandatory color="primary">
@@ -33,9 +32,15 @@
             <v-list-item-title v-text="foldername"></v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item v-for="(filename, i) in files" :key="i + filename.length" @click="load_file(filename)">
-          <v-list-item-icon>
+        <v-list-item class="tooltip" v-for="(filename, i) in files" :key="i + filename.length"
+          @click="load_file(filename)">
+          <!-- <v-img v-bind:src="image"> -->
+
+          <!-- </v-img> -->
+          <v-list-item-icon @mouseover="mousein(filename, i)" @mouseleave="mouseout()">
+            <img v-if="hover == true && i == index" v-bind:src="image" class="tooltiptext">
             <v-icon> mdi-image </v-icon>
+
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title v-text="filename"></v-list-item-title>
@@ -55,7 +60,10 @@ export default {
 
     files: [],
     folders: [],
-    timeout: 0
+    timeout: 0,
+    hover: false,
+    image: "",
+    index: -1,
   }),
   computed: {
     current_dir() {
@@ -75,6 +83,19 @@ export default {
   },
   methods: {
 
+    mousein(name, i) {
+      this.image = ""
+      this.hover = true;
+      this.index = i;
+      axios.post(this.$request_base_url + "thumbnail", { 'directory': this.directory + name })
+        .then(result => {
+          this.image = "data:image/png;base64," + result.data
+        })
+    },
+    mouseout() {
+      this.index = -1; this.hover = false;
+      this.image = ""
+    },
 
     load_file(filename) {
       this.$store.commit('CHANGE_FILEPATH', this.directory + filename)
@@ -114,3 +135,30 @@ export default {
   }
 }
 </script>
+
+<style>
+.v-card--reveal {
+  align-items: center;
+  bottom: 0;
+  justify-content: center;
+  opacity: .5;
+  position: absolute;
+  width: 100%;
+}
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip .tooltiptext {
+
+  position: absolute;
+  left: 50%;
+  height: 200%;
+  margin-left: -25%;
+  top: 100%;
+  z-index: 9;
+  border: black 2px solid;
+  border-radius: 3px;
+}
+</style>

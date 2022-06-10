@@ -15,6 +15,7 @@ from unicodedata import normalize
 from label_tool import LabelTool
 import json
 import base64
+from io import BytesIO
 
 
 DEEPZOOM_SLIDE = None
@@ -38,6 +39,12 @@ class PILBytesIO(BytesIO):
     def fileno(self):
         '''Classic PIL doesn't understand io.UnsupportedOperation.'''
         raise AttributeError('Not supported')
+def export_img_cv2(img):
+    buffered = BytesIO()
+    img.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue())
+  
+    return img_str
 
 
 def load_slide(file):
@@ -85,7 +92,16 @@ def list_files():
     onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyfiles)]
     return {'files': onlyfiles, 'folders': onlyDirs, 'currentPath': current_path}
 
+@app.route('/thumbnail', methods=['POST'])
+def thumbnail():
+    request_json = request.get_json()
+    current_path = request_json.get('directory')
+    img = open_slide(current_path).get_thumbnail((200, 200))
 
+    img = export_img_cv2( img)
+
+    
+    return img
 @app.route('/get_slide_infos/<path>')
 def get_slide_infos(path):
     path += '=='
