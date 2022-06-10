@@ -15,7 +15,7 @@ from unicodedata import normalize
 from label_tool import LabelTool
 import json
 import base64
-from urllib.parse import unquote
+
 
 DEEPZOOM_SLIDE = None
 DEEPZOOM_FORMAT = 'jpeg'
@@ -38,6 +38,7 @@ class PILBytesIO(BytesIO):
     def fileno(self):
         '''Classic PIL doesn't understand io.UnsupportedOperation.'''
         raise AttributeError('Not supported')
+
 
 def load_slide(file):
     slidefile = file
@@ -120,9 +121,9 @@ def setLabelClasses():
     return "Saved successfully"
 
 
-@app.route('/get_label_boxes/<id>', methods=['get'])
-def getLabelBoxes(id):
-    return label_tool.get_label_boxes(id, app.slides['left'], app.slides['top'])
+@app.route('/get_label_boxes/<_id>', methods=['get'])
+def get_label_boxes(_id):
+    return label_tool.get_label_boxes(_id, app.slides['left'], app.slides['top'])
 
 
 @app.route('/save_label_boxes', methods=['post'])
@@ -144,25 +145,34 @@ def dzi(slug):
         abort(404)
 
 
-@app.route('/<slug>_files/<int:level>/<int:col>_<int:row>.<format>')
-def tile(slug, level, col, row, format):
-    format = format.lower()
-    if format != 'jpeg' and format != 'png':
+@app.route('/<slug>_files/<int:level>/<int:col>_<int:row>.<_format>')
+def tile(slug, level, col, row, _format):
+    _format = _format.lower()
+    if _format != 'jpeg' and _format != 'png':
         # Not supported by Deep Zoom
         abort(404)
     try:
-        tile = app.slides[slug].get_tile(level, (col, row))
+        print()
+        print("-------------------")
+        print(slug, level, col, row)
+        image_tile = app.slides[slug].get_tile(level, (col, row))
+        print(image_tile)
+        buf = PILBytesIO()
+        image_tile.save(buf, _format, quality=app.config['DEEPZOOM_TILE_QUALITY'])
+        resp = make_response(buf.getvalue())
+        resp.mimetype = f"image/{_format}"
+        print("OK")
+        print("-------------------")
+        return resp
+    except SyntaxError:
+        print("ERROR - broken PNG file (chunk {repr(cid)})")
     except KeyError:
         # Unknown slug
         abort(404)
     except ValueError:
         # Invalid level or coordinates
         abort(404)
-    buf = PILBytesIO()
-    tile.save(buf, format, quality=app.config['DEEPZOOM_TILE_QUALITY'])
-    resp = make_response(buf.getvalue())
-    resp.mimetype = 'image/%s' % format
-    return resp
+
 
 
 @app.route('/favicon.ico')
