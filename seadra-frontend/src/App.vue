@@ -40,8 +40,7 @@
 },
     data: () => ({ drawer: null }),
     mounted(){
-      //call api to use in component fileExplorer
-      axios.post('http://localhost:4000/fileExplorer',{'path':''}).then(response => (console.log(response.data)))
+      
     }
 
   }

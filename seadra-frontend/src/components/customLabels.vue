@@ -55,7 +55,7 @@ import json_file from "./label.json";
         methods: {
             save_json() { // Has to know the image filename
 
-                let json_array = [this.choice_select, this.check_select, this.text_select]
+                //let json_array = [this.choice_select, this.check_select, this.text_select]
                 // for (let prop in this.choice_select) {
                 //     console.log(prop)
                 //     json_array.push({ prop : this.choice_select[prop] })
@@ -68,7 +68,7 @@ import json_file from "./label.json";
                 // for (let prop in this.text_select) {
                 //     json_array.push({ prop : this.text_select[prop] })
                 // } 
-                json_string = JSON.stringify(json_array)
+                //json_string = JSON.stringify(json_array)
                 
 
             },
