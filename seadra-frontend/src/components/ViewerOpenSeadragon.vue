@@ -37,18 +37,28 @@
     },
     methods: {
       read_slide(filepath) {
-        var request_url = this.$request_base_url + "get_slide_infos/"
-        request_url += window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')
-        console.log("read slide: " , request_url)
-        axios.get(request_url).then((result) => {
-          console.log(result.data)
-          // this.viewer = OpenSeadragon(this.options);
-          // this.viewer.canvas.id = "openseadragon_canvas"
-          // this.$store.commit('INIT_OSD', this.viewer)
-          this.viewer.open(this.$request_base_url+result.data.slide);
-          //this.viewer.scalebar({pixelsPerMeter: result.mpp ? (1e6 / result.mpp) : 0});
-        });
-      },
+        var ext = filepath.split('.').pop()
+        if(['png', 'jpg', 'jpeg'].includes(ext)){
+          this.viewer.open({
+            type: 'image',
+            url: this.$request_base_url+'getimg/'+window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')+'.png',
+            buildPyramid: false
+          })
+        } else {
+          var request_url = this.$request_base_url + "get_slide_infos/"
+          request_url += window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')
+          console.log("read slide: " , request_url)
+          axios.get(request_url).then((result) => {
+            console.log(result.data)
+            // this.viewer = OpenSeadragon(this.options);
+            // this.viewer.canvas.id = "openseadragon_canvas"
+            // this.$store.commit('INIT_OSD', this.viewer)
+            this.viewer.open(this.$request_base_url+result.data.slide);
+            //this.viewer.scalebar({pixelsPerMeter: result.mpp ? (1e6 / result.mpp) : 0});
+          //}
+          });
+        }
+      }
     },
     mounted() {
       this.viewer = OpenSeadragon(this.options);

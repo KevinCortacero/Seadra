@@ -6,6 +6,7 @@ import os
 from flask import Flask, abort, make_response, url_for, request, send_from_directory
 from flask_cors import CORS
 from io import BytesIO
+from PIL import Image
 
 import openslide
 from openslide import open_slide
@@ -26,7 +27,7 @@ DEEPZOOM_TILE_QUALITY = 75
 SLIDE_NAME = 'slide'
 
 
-fileExtensionAvailable = ('.png', '.jpg', '.jpeg', '.mrxs', '.tif', ".svs")
+fileExtensionAvailable = ('.png', '.jpg', '.jpeg', '.mrxs', '.tif', '.iff', ".svs")
 
 app = Flask(__name__)
 CORS(app)
@@ -74,6 +75,10 @@ def load_slide(file):
         app.slide_mpp = 0
         return 0
 
+def convertB64(path):
+    path += '=='
+    file = base64.b64decode(path).decode("utf-8")
+    return file
 
 @app.route('/list_files', methods=['POST'])
 def list_files():
@@ -87,11 +92,11 @@ def list_files():
 
 @app.route('/get_slide_infos/<path>')
 def get_slide_infos(path):
-    path += '=='
-    file = base64.b64decode(path).decode("utf-8")
+    file = convertB64(path)
+    #if(file.split('.')[-1] in [])
     mpp = load_slide(file)
     infos = {
-        'slide': url_for('dzi', slug=SLIDE_NAME),
+        'slide': url_for('dzi', slug=path),
         'mpp': str(mpp)
     }
     return infos
@@ -132,11 +137,26 @@ def saveLabelBoxes():
     return "Saved successfully"
 
 
+@app.route('/getimg/<filenameB64>.png')
+def native(filenameB64):
+    filepath = convertB64(filenameB64)
+    print(filepath)
+    try:
+        with Image.open(filepath) as im:
+            buf = PILBytesIO()
+            im.save(buf, format="PNG")
+        resp = make_response(buf.getvalue())
+        resp.mimetype = 'image/PNG'
+        return resp
+    except KeyError:
+        # Unknown slug
+        abort(404)
+
 @app.route('/<slug>.dzi')
 def dzi(slug):
     format = app.config['DEEPZOOM_FORMAT']
     try:
-        resp = make_response(app.slides[slug].get_dzi(format))
+        resp = make_response(app.slides[SLIDE_NAME].get_dzi(format))
         resp.mimetype = 'application/xml'
         return resp
     except KeyError:
