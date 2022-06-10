@@ -181,14 +181,14 @@ def dzi(slug):
         abort(404)
 
 
-@app.route('/<slug>_files/<int:level>/<int:col>_<int:row>.<_format>')
+@app.route('/<slug>/<int:level>/<int:col>_<int:row>.<_format>')
 def tile(slug, level, col, row, _format):
     _format = _format.lower()
     if _format != 'jpeg' and _format != 'png':
         # Not supported by Deep Zoom
         abort(404)
     try:
-        image_tile = app.slides[slug].get_tile(level, (col, row))
+        image_tile = app.slides[SLIDE_NAME].get_tile(level, (col, row))
         print(image_tile)
         buf = PILBytesIO()
         image_tile.save(buf, _format, quality=app.config['DEEPZOOM_TILE_QUALITY'])

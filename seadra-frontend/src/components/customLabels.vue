@@ -4,14 +4,16 @@
 <div id="labelling_zone">
     <v-list-item-group>
         <v-list-item
-            v-for="(label,i) in this.json.labels"
-            :key="i"  class="seg_label" v-bind:style="{'background-color': label.color}"
+            v-for="(label,i) in this.labels"
+            :key="i" @click="selectLabel(i)"
+            class="label" v-bind:class="i===labelsSelected?'active':''"
+            v-bind:style="{'background-color': label.color}"
           >
-          <v-checkbox input-value="1"></v-checkbox>
+          <!-- <v-checkbox input-value="1"></v-checkbox> -->
           <v-list-item-title  >{{label.name}}</v-list-item-title>
         </v-list-item>
     </v-list-item-group>
-    <v-combobox style="padding-top:30px" v-for="(choice,i) in this.json.customs.choices" :key="'choice'+i"
+    <v-combobox style="padding-top:30px" v-for="(choice,i) in this.choices" :key="'choice'+i"
             v-model="choice_select[choice.name]"
             v-bind:items= "choice.options"
             v-bind:label="choice.name"
@@ -19,7 +21,7 @@
             dense
           >
     </v-combobox>
-    <v-combobox v-for="(check,i) in this.json.customs.checks" :key="'check'+i"
+    <v-combobox v-for="(check,i) in this.checks" :key="'check'+i"
             v-model="check_select[check.name]"
             v-bind:items= "check.options"
             v-bind:label="check.name"
@@ -28,7 +30,7 @@
             dense
           >
     </v-combobox>
-    <v-textarea v-for="(text,i) in this.json.customs.texts" :key="'text'+i" v-model=text_select[text.name] class="mx-2" v-bind:label="text.name" rows="8" prepend-icon="mdi-comment"></v-textarea>
+    <v-textarea v-for="(text,i) in this.texts" :key="'text'+i" v-model=text_select[text.name] class="mx-2" v-bind:label="text.name" rows="8" prepend-icon="mdi-comment"></v-textarea>
     <v-btn @click="save_json">Sauvegarder</v-btn>
     </div>
 </template>
@@ -47,11 +49,18 @@ import json_file from "./label.json";
                 choice_select: {},
                 check_select: {},
                 text_select: {},
-                json : json_file
+                choices: [],
+                checks: [],
+                texts: [],
+                labelsSelected: 0
             }
-        
         },
+        computed:{
+            
+        },
+        watch:{
 
+        },
         methods: {
             save_json() { // Has to know the image filename
 
@@ -69,33 +78,40 @@ import json_file from "./label.json";
                 //     json_array.push({ prop : this.text_select[prop] })
                 // } 
                 //json_string = JSON.stringify(json_array)
-                
+                console.log(this.$store.state.getBoxLabels())
 
             },
-            beforeCreate() {
-                let choices = this.json["customs"].choices
-                // console.log(choices)
-                for (let i=0; i<choices.length; i++) {
-                    this.choice_select[choices[i].name] = ""
-                    // console.log("Choice_select created")
-                    // console.log(this.choice_select)
-                }
-                let checks = this.json["customs"].checks
-                for (let i=0; i<checks.length; i++) {
-                    this.check_select[checks[i].name] = ""
-                    // console.log(this.check_select)
-                }
-                let texts = this.json["customs"].texts
-                for (let i=0; i<texts.length; i++) {
-                    this.text_select[texts[i].name] = ""
-                    // console.log("Text_select created")
-                }    
+            load_json(){
+                this.choices = json_file.customs.choices;
+                this.checks = json_file.customs.checks;
+                this.texts = json_file.customs.texts;
+                this.labels = json_file.labels;
+                this.$store.commit('UPDATE_LIST_LABEL',this.labels.map((l,i)=>{l.id=i;return l}));
+                this.$store.commit('CHANGE_SELECTED_LABEL',0);
+            },
+            selectLabel(index){
+                this.labelsSelected = index;
+                this.$store.commit('CHANGE_SELECTED_LABEL',index);
             }
-
         },
 
-        mounted() {
-            this.beforeCreate()
+        created() {
+            this.load_json()
+            
+            // console.log(choices)
+            for (let i=0; i<this.choices.length; i++) {
+                this.choice_select[this.choices[i].name] = ""
+                // console.log("Choice_select created")
+                // console.log(this.choice_select)
+            }
+            for (let i=0; i<this.checks.length; i++) {
+                this.check_select[this.checks[i].name] = ""
+                // console.log(this.check_select)
+            }
+            for (let i=0; i<this.texts.length; i++) {
+                this.text_select[this.texts[i].name] = ""
+                // console.log("Text_select created")
+            }    
         }
     }
 
@@ -106,7 +122,15 @@ import json_file from "./label.json";
 
 <!-- Style    -->
 <style>
-
+.label{
+    height: 48px;
+    margin-right: 50px;
+    margin-top: 2px;
+    border-radius: 0 24px 24px 0;
+}
+.active{
+    margin-right: 10px;
+}
 
 
 </style>

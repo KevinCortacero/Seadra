@@ -46,8 +46,9 @@ function LabelTool() {
 }
 
 LabelTool.prototype = {
-    init: function(osd) {
+    init: function(osd,cbBoxSelected) {
         this._osdViewer = osd
+        this._cbBoxSelected = cbBoxSelected
         this.initFabric();
         this.initAuxLine();
         this.initAuxBoxRectangle();
@@ -84,6 +85,7 @@ LabelTool.prototype = {
     },
     initAuxLine: function() {
         this.xAuxLine = new fabric.Line([0, 100, this._canvas.width, 100],{
+            //stroke: this.selectedClass.color,
             stroke: 'rgb(100,100,100)',
             strokeDashArray: [5, 5],
             tab: 'aux',
@@ -91,6 +93,7 @@ LabelTool.prototype = {
             visible: false
         });
         this.yAuxLine = new fabric.Line([100, 0, 100, this._canvas.height],{
+            //stroke: this.selectedClass.color,
             stroke: 'rgb(100,100,100)',
             strokeDashArray: [5, 5],
             tab: 'aux',
@@ -99,6 +102,7 @@ LabelTool.prototype = {
         });
 
         this.auxLineToStart = new fabric.Line([0, 0, 0, 0], {
+            //stroke: this.selectedClass.color,
             stroke: 'rgb(100,100,100)',
             strokeDashArray: [5, 5],
             tab: 'aux',
@@ -106,6 +110,7 @@ LabelTool.prototype = {
             visible: false
         });
         this.auxLineToEnd = new fabric.Line([0, 0, 0, 0], {
+            //stroke: this.selectedClass.color,
             stroke: 'rgb(100,100,100)',
             strokeDashArray: [5, 5],
             tab: 'aux',
@@ -119,32 +124,39 @@ LabelTool.prototype = {
         this._canvas.add(this.auxLineToEnd);
     },
     initAuxBoxRectangle: function() {
+        console.log(this.selectedClass)
         var rect = {
             left: 0,
             top: 0,
             width: 0,
             height: 0,
-            fill: 'rgba(160,160,160,0.4)',
+            fill: this.selectedClass.color + '66',
+         //  fill: (this.selectedClass.id)?this.selectedClass.color + '66':'rgba(160,160,160,0.4)',
             opacity: 0.5,
             visible: false,
             strokeWidth: 2,
-            stroke: 'rgba(80,80,80,1)',// "#880E4F",
+            stroke: this.selectedClass.color,
+          //  stroke: (this.selectedClass.id)?this.selectedClass.color:'rgba(80,80,80,1)',// "#880E4F",
             strokeUniform: true,
             _controlsVisibility:{
                 mtr: false
             },
             tab: 'auxbox'
         };
+        
         this.auxBoxRectangle = new LabelBoxRectangle(rect);
         this._canvas.add(this.auxBoxRectangle.shape);
+        //this.updateBoxClass(this.auxBoxRectangle.get('tab'),this.selectedClass.id);
     },
     initAuxBoxPolygon: function(points) {
         var polygon = {
             points: points,
-            fill: 'rgba(160,160,160,0.4)',
+            fill: this.selectedClass.color + '66',
+            //fill: (this.selectedClass.id)?this.selectedClass.color + '66':'rgba(160,160,160,0.4)',
             opacity: 0.5,
             strokeWidth: 2,
-            stroke: 'rgba(80,80,80,1)',// "#880E4F",
+            stroke: this.selectedClass.color,
+            //stroke: (this.selectedClass.id)?this.selectedClass.color:'rgba(80,80,80,1)',// "#880E4F",
             strokeUniform: true,
             _controlsVisibility:{
                 mtr: false
@@ -154,6 +166,7 @@ LabelTool.prototype = {
         };
         this.auxBoxPolygon = new LabelBoxPolygon(polygon);
         this._canvas.add(this.auxBoxPolygon.shape);
+        //this.updateBoxClass(this.auxBoxPolygon.get('tab'),this.selectedClass.id);
     },
     initCusEvent: function() {
         this._canvas.on({
@@ -229,6 +242,7 @@ LabelTool.prototype = {
                     if(this.selectedBox) this.selectedBox.set('strokeDashArray', [10, 10]);
                     e.target.set('strokeDashArray', [0, 0]);
                     this.selectedBox = e.target;
+                    this._cbBoxSelected(true)
                     this._canvas.renderAll();
                     this.editModeOn();
                 }
@@ -237,6 +251,7 @@ LabelTool.prototype = {
                         this.selectedBox.set('strokeDashArray', [10, 10]);
                         this._canvas.renderAll();
                         this.selectedBox = null;
+                        this._cbBoxSelected(false)
                     }
                     this.viewModeOn();
                 }
@@ -255,8 +270,9 @@ LabelTool.prototype = {
                                     this.addNewBox(newBox);
                                     this.saveState = false;
                                     this._canvas.setActiveObject(newBox.shape);
-                                    this.selectedBox = newBox.shape;
+                                    //this.selectedBox = newBox.shape;
                                     this.editModeOn();
+                                    this.drawModeOn(true);
                                 }
                                 this.drawing = false;
                                 this.startPoint = null;
@@ -350,9 +366,10 @@ LabelTool.prototype = {
                     this.addNewBox(newBox);
                     this._changeEditMode(newBox.shape, newBox.shape.cornerColor);
                     this._canvas.setActiveObject(newBox.shape);
-                    this.selectedBox = newBox.shape;
+                    //this.selectedBox = newBox.shape;
                     this._canvas.requestRenderAll();
                     this.editModeOn();
+                    this.drawModeOn(false);
 
                     this.drawing = false;
                     this.saveState = false;
@@ -438,7 +455,6 @@ LabelTool.prototype = {
     },
     changeLabel: function(selectedClass){
         this.selectedClass = selectedClass;
-        
         if(this.selectedBox) {
             this.selectedBox.set('fill', this.selectedClass.color + '66');
             this.selectedBox.set('stroke', this.selectedClass.color);
@@ -497,6 +513,7 @@ LabelTool.prototype = {
                 this._canvas.discardActiveObject(this.selectedBox);
                 this.selectedBox.set('strokeDashArray', [10, 10]);
                 this.selectedBox = null;
+                this._cbBoxSelected(false)
             }
         }
         this.lockViewer();
@@ -588,9 +605,9 @@ LabelTool.prototype = {
     },
     addNewBox: function(labelBox) {
         this.labelBoxes[labelBox.id] = labelBox;
-        this._canvas.add(labelBox.shape);
+        this._canvas.add(labelBox.shape);/*
         if(Number.isInteger(labelBox.classID))
-            this.updateLabelCount(labelBox.classID, true);
+            this.updateLabelCount(labelBox.classID, true);*/
     },
     computeLocation: function(start, end) {
         return {
@@ -674,6 +691,7 @@ LabelTool.prototype = {
         }
         this.labelBoxes = {};
         this.selectedBox = null;
+        this._cbBoxSelected(false)
     },
     removeBox: function(id) {
         this._canvas.remove(this.labelBoxes[id].shape)
@@ -683,8 +701,8 @@ LabelTool.prototype = {
         if(this.selectedBox) {
             this._canvas.remove(this.selectedBox);
             if(this.labelBoxes[this.selectedBox.tab]) {
-                var classID = this.labelBoxes[this.selectedBox.tab].classID;
-                this.updateLabelCount(classID, false);
+                //var classID = this.labelBoxes[this.selectedBox.tab].classID;
+                //this.updateLabelCount(classID, false);
                 delete this.labelBoxes[this.selectedBox.tab];
             }
             if(this.hoveredBox) {
@@ -693,6 +711,7 @@ LabelTool.prototype = {
                 }
             }
             this.selectedBox = null;
+            this._cbBoxSelected(false)
         }
     },
     resize: function () {
@@ -707,9 +726,9 @@ LabelTool.prototype = {
     // *******************************************************
     // label box
     updateBoxClass: function(id, classID) {
-        this.updateLabelCount(this.labelBoxes[id].classID, false);
+        //this.updateLabelCount(this.labelBoxes[id].classID, false);
         this.labelBoxes[id].classID = classID;
-        this.updateLabelCount(classID, true);
+        //this.updateLabelCount(classID, true);
     },
     loadLabelBoxes: function(boxes) {
         this.removeAllBoxes();

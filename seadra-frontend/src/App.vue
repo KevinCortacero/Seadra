@@ -14,7 +14,8 @@
       <viewer-open-seadragon/>
     </v-main>
 
-    <v-navigation-drawer app permanent right>
+    <v-navigation-drawer app permanent right width="305">
+      <div style="width:100%;height:250px;"><div id="view-nav" style="width:100%;height:100%;background-color:#424242"></div></div>
       <annotation-open-seadragon />
       <custom-labels/> 
     </v-navigation-drawer>
@@ -40,7 +41,7 @@
 },
     data: () => ({ drawer: null }),
     mounted(){
-      
+
     }
 
   }

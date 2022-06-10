@@ -2,44 +2,69 @@
     "labels":[
             {
                 "name": "class A",
-                "color": "blue"
+                "color": "#D94430"
             },
             {
                 "name": "class B",
-                "color": "red"
+                "color": "#009FF5"
             },
             {
                 "name": "class C",
-                "color": "orange"
+                "color": "#DEA402"
             },
             {
                 "name": "class D",
-                "color": "cyan"
+                "color": "#116A43"
             },
             {
                 "name": "class E",
-                "color": "pink"
+                "color": "#4B1B4A"
             }
         ],
-    "customs": {
-        "choices" :[
+        "customs": {
+            "choices": [
                 {
-                "name": "Diag Solo",
-                "options" : ["choix A", "choix B", "choix C"]
+                    "name": "Diag Solo",
+                    "options": [
+                        "choix A",
+                        "choix B",
+                        "choix C"
+                    ]
                 }
             ],
-        "checks": [
-            {
-            "name": "Diag Multi",
-            "options": ["case 1", "case 2", "case 3", "case 4"]
+            "checks": [
+                {
+                    "name": "Diag Multi",
+                    "options": [
+                        "case 1",
+                        "case 2",
+                        "case 3",
+                        "case 4"
+                    ]
+                },
+                {
+                    "name": "Diag Multi 2",
+                    "options": [
+                        "case 11",
+                        "case 12",
+                        "case 13",
+                        "case 14",
+                        "case 15"
+                    ]
+                }
+            ],
+            "texts": [
+                {
+                    "name": "Commentaire",
+                    "value": "True"
+                }
+            ]
         },
-        {
-            "name": "Diag Multi 2",
-            "options": ["case 11", "case 12", "case 13", "case 14", "case 15"]
+        "customs2": [{
+            "name":"coucou",
+            "options":["k1","k2"],
+            "type": "multicheck"
+
         }],
-        "texts": [{
-            "name": "Commentaire",
-            "value": "True"
-        }]
-    }
+        "annotatedImage":[{"pathImg":"","annotationPath":""}]
 }

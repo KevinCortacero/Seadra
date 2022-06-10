@@ -87,7 +87,7 @@ export default {
       this.image = ""
       this.hover = true;
       this.index = i;
-      axios.post(this.$request_base_url + "thumbnail", { 'directory': this.directory + name })
+      axios.post(this.$request_base_url + "/thumbnail", { 'directory': this.directory + name })
         .then(result => {
           this.image = "data:image/png;base64," + result.data
         })
@@ -101,13 +101,13 @@ export default {
       this.$store.commit('CHANGE_FILEPATH', this.directory + filename)
     },
     load_dir(foldername) {
-      axios.post(this.$request_base_url + "list_files", { 'directory': this.directory + foldername })
+      axios.post(this.$request_base_url + "/list_files", { 'directory': this.directory + foldername })
         .then(result => {
           this.update_data(result.data)
         })
     },
     goback() {
-      axios.post(this.$request_base_url + "list_files", { 'directory': this.directory + '..' })
+      axios.post(this.$request_base_url + "/list_files", { 'directory': this.directory + '..' })
         .then(result => {
           this.update_data(result.data)
 
@@ -116,7 +116,7 @@ export default {
 
     list_files() {
 
-      axios.post(this.$request_base_url + "list_files", { 'directory': this.directory })
+      axios.post(this.$request_base_url + "/list_files", { 'directory': this.directory })
         .then(result => {
           this.update_data(result.data)
 
