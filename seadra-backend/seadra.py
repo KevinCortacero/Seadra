@@ -154,6 +154,7 @@ def tile(slug, level, col, row, _format):
     try:
         print()
         print("-------------------")
+        level = max(9, level)
         print(slug, level, col, row)
         image_tile = app.slides[slug].get_tile(level, (col, row))
         print(image_tile)
@@ -165,12 +166,16 @@ def tile(slug, level, col, row, _format):
         print("-------------------")
         return resp
     except SyntaxError:
-        print("ERROR - broken PNG file (chunk {repr(cid)})")
+        print("ERROR - broken PNG file (chunk {repr(cid)})", slug, level, col, row)
+        abort(404)
     except KeyError:
-        # Unknown slug
+        print("Key Error:", slug, level, col, row)
         abort(404)
     except ValueError:
-        # Invalid level or coordinates
+        print("Value Error:", slug, level, col, row)
+        abort(404)
+    except OSError:
+        print("OSError Error:", slug, level, col, row)
         abort(404)
 
 
