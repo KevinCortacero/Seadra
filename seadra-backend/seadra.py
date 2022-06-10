@@ -152,18 +152,12 @@ def tile(slug, level, col, row, _format):
         # Not supported by Deep Zoom
         abort(404)
     try:
-        print()
-        print("-------------------")
-        level = max(9, level)
-        print(slug, level, col, row)
         image_tile = app.slides[slug].get_tile(level, (col, row))
         print(image_tile)
         buf = PILBytesIO()
         image_tile.save(buf, _format, quality=app.config['DEEPZOOM_TILE_QUALITY'])
         resp = make_response(buf.getvalue())
         resp.mimetype = f"image/{_format}"
-        print("OK")
-        print("-------------------")
         return resp
     except SyntaxError:
         print("ERROR - broken PNG file (chunk {repr(cid)})", slug, level, col, row)
