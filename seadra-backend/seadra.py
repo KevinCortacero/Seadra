@@ -16,7 +16,8 @@ from unicodedata import normalize
 from label_tool import LabelTool
 import json
 import base64
-from urllib.parse import unquote
+from io import BytesIO
+
 
 DEEPZOOM_SLIDE = None
 DEEPZOOM_FORMAT = 'jpeg'
@@ -39,6 +40,13 @@ class PILBytesIO(BytesIO):
     def fileno(self):
         '''Classic PIL doesn't understand io.UnsupportedOperation.'''
         raise AttributeError('Not supported')
+def export_img_cv2(img):
+    buffered = BytesIO()
+    img.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue())
+  
+    return img_str
+
 
 def load_slide(file):
     slidefile = file
@@ -89,7 +97,16 @@ def list_files():
     onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyfiles)]
     return {'files': onlyfiles, 'folders': onlyDirs, 'currentPath': current_path}
 
+@app.route('/thumbnail', methods=['POST'])
+def thumbnail():
+    request_json = request.get_json()
+    current_path = request_json.get('directory')
+    img = open_slide(current_path).get_thumbnail((200, 200))
 
+    img = export_img_cv2( img)
+
+    
+    return img
 @app.route('/get_slide_infos/<path>')
 def get_slide_infos(path):
     file = convertB64(path)
@@ -125,9 +142,9 @@ def setLabelClasses():
     return "Saved successfully"
 
 
-@app.route('/get_label_boxes/<id>', methods=['get'])
-def getLabelBoxes(id):
-    return label_tool.get_label_boxes(id, app.slides['left'], app.slides['top'])
+@app.route('/get_label_boxes/<_id>', methods=['get'])
+def get_label_boxes(_id):
+    return label_tool.get_label_boxes(_id, app.slides['left'], app.slides['top'])
 
 
 @app.route('/save_label_boxes', methods=['post'])
@@ -164,25 +181,33 @@ def dzi(slug):
         abort(404)
 
 
-@app.route('/<slug>_files/<int:level>/<int:col>_<int:row>.<format>')
-def tile(slug, level, col, row, format):
-    format = format.lower()
-    if format != 'jpeg' and format != 'png':
+@app.route('/<slug>_files/<int:level>/<int:col>_<int:row>.<_format>')
+def tile(slug, level, col, row, _format):
+    _format = _format.lower()
+    if _format != 'jpeg' and _format != 'png':
         # Not supported by Deep Zoom
         abort(404)
     try:
-        tile = app.slides[slug].get_tile(level, (col, row))
+        image_tile = app.slides[slug].get_tile(level, (col, row))
+        print(image_tile)
+        buf = PILBytesIO()
+        image_tile.save(buf, _format, quality=app.config['DEEPZOOM_TILE_QUALITY'])
+        resp = make_response(buf.getvalue())
+        resp.mimetype = f"image/{_format}"
+        return resp
+    except SyntaxError:
+        print("ERROR - broken PNG file (chunk {repr(cid)})", slug, level, col, row)
+        abort(404)
     except KeyError:
-        # Unknown slug
+        print("Key Error:", slug, level, col, row)
         abort(404)
     except ValueError:
-        # Invalid level or coordinates
+        print("Value Error:", slug, level, col, row)
         abort(404)
-    buf = PILBytesIO()
-    tile.save(buf, format, quality=app.config['DEEPZOOM_TILE_QUALITY'])
-    resp = make_response(buf.getvalue())
-    resp.mimetype = 'image/%s' % format
-    return resp
+    except OSError:
+        print("OSError Error:", slug, level, col, row)
+        abort(404)
+
 
 
 @app.route('/favicon.ico')
