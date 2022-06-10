@@ -1,0 +1,45 @@
+{    
+    "labels":[
+            {
+                "name": "class A",
+                "color": "blue"
+            },
+            {
+                "name": "class B",
+                "color": "red"
+            },
+            {
+                "name": "class C",
+                "color": "orange"
+            },
+            {
+                "name": "class D",
+                "color": "cyan"
+            },
+            {
+                "name": "class E",
+                "color": "pink"
+            }
+        ],
+    "customs": {
+        "choices" :[
+                {
+                "name": "Diag Solo",
+                "options" : ["choix A", "choix B", "choix C"]
+                }
+            ],
+        "checks": [
+            {
+            "name": "Diag Multi",
+            "options": ["case 1", "case 2", "case 3", "case 4"]
+        },
+        {
+            "name": "Diag Multi 2",
+            "options": ["case 11", "case 12", "case 13", "case 14", "case 15"]
+        }],
+        "texts": [{
+            "name": "Commentaire",
+            "value": "True"
+        }]
+    }
+}

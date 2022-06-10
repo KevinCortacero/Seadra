@@ -19,7 +19,11 @@
 
     <v-navigation-drawer app permanent right>
       <annotation-open-seadragon />
+      <custom-labels/> 
     </v-navigation-drawer>
+
+
+    
   </v-app>
 </template>
 
@@ -27,17 +31,19 @@
   import axios from 'axios'
   import ViewerOpenSeadragon from '@/components/ViewerOpenSeadragon.vue'
   import AnnotationOpenSeadragon from '@/components/AnnotationOpenSeadragon.vue'
-
+  import customLabels from '@/components/customLabels.vue'
+import CustomLabels from './components/customLabels.vue'
   export default {
     components: {
-      ViewerOpenSeadragon,
-      AnnotationOpenSeadragon,
-
-    },
+    ViewerOpenSeadragon,
+    AnnotationOpenSeadragon,
+    customLabels,
+    CustomLabels
+},
     data: () => ({ drawer: null }),
     mounted(){
       //call api to use in component fileExplorer
-      axios.post('http://localhost:4000/fileExplorer',{'path':'/home/david/Pictures/labelomon'}).then(response => (console.log(response.data)))
+      axios.post('http://localhost:4000/fileExplorer',{'path':''}).then(response => (console.log(response.data)))
     }
   }
 </script>
