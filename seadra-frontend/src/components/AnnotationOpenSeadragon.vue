@@ -38,7 +38,7 @@
             boxSelected: false,
         }),
         computed: {
-            ...mapState(['viewerOSD']),
+            ...mapState(['viewerOSD','filepath']),
             ...mapGetters(['selected_label']),
         },
         watch: {
@@ -79,6 +79,11 @@
                     this.initEventKeyboard()
                     this.$store.commit('INIT_GETTER_BOXLABELS', ()=>{return this.labelTool.saveLabelBoxes()})
                     window.addEventListener('resize', ()=>this.labelTool.resize());
+                }
+            },
+            filepath(){
+                if(this.labelTool){
+                    this.labelTool.removeAllBoxes()
                 }
             }
         },

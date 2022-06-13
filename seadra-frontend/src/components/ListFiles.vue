@@ -76,9 +76,7 @@ export default {
     directory(new_dir) {
       if (new_dir[new_dir.length - 1] === "/" && new_dir !== "/") {
         this.list_files()
-
       }
-
     }
   },
   methods: {
@@ -126,12 +124,16 @@ export default {
       this.files = data.files;
       this.folders = data.folders;
       this.directory = data.currentPath + ((data.currentPath !== "/") ? "/" : "");
+      localStorage.directory = this.directory;
 
 
     }
   },
   mounted() {
-    this.list_files()
+    if(localStorage.directory)
+      this.directory = localStorage.directory;
+    else
+      this.list_files()
   }
 }
 </script>

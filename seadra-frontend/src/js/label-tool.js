@@ -2,6 +2,9 @@ import {fabric} from 'fabric';
 import OpenSeadragon from 'openseadragon'
 import {LabelBoxRectangle,LabelBoxPolygon} from './label-box'
 
+function toHex(d) {
+    return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase()
+}
 function LabelTool() {
     // main components
     this._osdViewer = null; // Openseadragon viewer
@@ -30,6 +33,9 @@ function LabelTool() {
    this.xAuxLine = null;
    this.YAuxLine = null;
    this.auxPoints = [];
+
+   this.opacityBox = 0.02;
+   this.opacityBox2 = 0.8;
     
     // label class
     this.selectedClass = {
@@ -104,7 +110,7 @@ LabelTool.prototype = {
         this.auxLineToStart = new fabric.Line([0, 0, 0, 0], {
             //stroke: this.selectedClass.color,
             stroke: 'rgb(100,100,100)',
-            strokeDashArray: [5, 5],
+            strokeDashArray: [5, 2],
             tab: 'aux',
             selectable : false,
             visible: false
@@ -112,7 +118,7 @@ LabelTool.prototype = {
         this.auxLineToEnd = new fabric.Line([0, 0, 0, 0], {
             //stroke: this.selectedClass.color,
             stroke: 'rgb(100,100,100)',
-            strokeDashArray: [5, 5],
+            strokeDashArray: [5, 2],
             tab: 'aux',
             selectable : false,
             visible: false
@@ -130,9 +136,9 @@ LabelTool.prototype = {
             top: 0,
             width: 0,
             height: 0,
-            fill: this.selectedClass.color + '66',
+            fill: this.selectedClass.color + toHex(Math.round(this.opacityBox*255)),
          //  fill: (this.selectedClass.id)?this.selectedClass.color + '66':'rgba(160,160,160,0.4)',
-            opacity: 0.5,
+            opacity: this.opacityBox2,
             visible: false,
             strokeWidth: 2,
             stroke: this.selectedClass.color,
@@ -151,9 +157,9 @@ LabelTool.prototype = {
     initAuxBoxPolygon: function(points) {
         var polygon = {
             points: points,
-            fill: this.selectedClass.color + '66',
+            fill: this.selectedClass.color + toHex(Math.round(this.opacityBox*255)),
             //fill: (this.selectedClass.id)?this.selectedClass.color + '66':'rgba(160,160,160,0.4)',
-            opacity: 0.5,
+            opacity: this.opacityBox2,
             strokeWidth: 2,
             stroke: this.selectedClass.color,
             //stroke: (this.selectedClass.id)?this.selectedClass.color:'rgba(80,80,80,1)',// "#880E4F",
@@ -202,7 +208,7 @@ LabelTool.prototype = {
                         // sometimes the auxline will by hovered, ignore
                         if(e.target.tab == 'aux') return;
                         if(this.boxDrag) return;
-                        e.target.opacity = 0.5;
+                        e.target.opacity = this.opacityBox2;
                         this.hoveredBox = null;
                         this._canvas.renderAll();
                     }
@@ -213,6 +219,8 @@ LabelTool.prototype = {
                     if(this.drawRectangle) {
                         this.drawing = true;
                         this.startPoint = e.pointer;
+                        this.auxBoxRectangle.set("fill", this.selectedClass.color + toHex(Math.round(this.opacityBox*255)),);
+                        this.auxBoxRectangle.set("stroke", this.selectedClass.color);
                     }
                     else {
                         var newPoint = {};
@@ -239,7 +247,7 @@ LabelTool.prototype = {
                     }
                 }
                 else if(e.target && e.target.selectable) {
-                    if(this.selectedBox) this.selectedBox.set('strokeDashArray', [10, 10]);
+                    if(this.selectedBox) this.selectedBox.set('strokeDashArray', [10, 2]);
                     e.target.set('strokeDashArray', [0, 0]);
                     this.selectedBox = e.target;
                     this._cbBoxSelected(true)
@@ -248,7 +256,7 @@ LabelTool.prototype = {
                 }
                 else {
                     if(this.selectedBox) {
-                        this.selectedBox.set('strokeDashArray', [10, 10]);
+                        this.selectedBox.set('strokeDashArray', [10, 2]);
                         this._canvas.renderAll();
                         this.selectedBox = null;
                         this._cbBoxSelected(false)
@@ -269,7 +277,7 @@ LabelTool.prototype = {
                                     var newBox = this.newLabelBoxRectangle(loc);
                                     this.addNewBox(newBox);
                                     this.saveState = false;
-                                    this._canvas.setActiveObject(newBox.shape);
+                                    //this._canvas.setActiveObject(newBox.shape);
                                     //this.selectedBox = newBox.shape;
                                     this.editModeOn();
                                     this.drawModeOn(true);
@@ -456,7 +464,7 @@ LabelTool.prototype = {
     changeLabel: function(selectedClass){
         this.selectedClass = selectedClass;
         if(this.selectedBox) {
-            this.selectedBox.set('fill', this.selectedClass.color + '66');
+            this.selectedBox.set('fill', this.selectedClass.color + toHex(Math.round(this.opacityBox*255)));
             this.selectedBox.set('stroke', this.selectedClass.color);
             this.selectedBox.set('cornerColor', this.selectedClass.color);
             this._canvas.renderAll();
@@ -511,7 +519,7 @@ LabelTool.prototype = {
             this.editMode = false;
             if(this.selectedBox) {
                 this._canvas.discardActiveObject(this.selectedBox);
-                this.selectedBox.set('strokeDashArray', [10, 10]);
+                this.selectedBox.set('strokeDashArray', [10, 2]);
                 this.selectedBox = null;
                 this._cbBoxSelected(false)
             }
@@ -547,12 +555,12 @@ LabelTool.prototype = {
     newLabelBoxRectangle: function(loc) {
         var color, stroke, classID
         if(this.selectedClass.id != null) {
-            color = this.selectedClass.color + '66';
+            color = this.selectedClass.color + toHex(Math.round(this.opacityBox*255));
             stroke = this.selectedClass.color;
             classID = this.selectedClass.id;
         }
         else {
-            color = 'rgba(160,160,160,0.4)'
+            color = 'rgba(160,160,160,'+this.opacityBox+')'
             stroke = 'rgba(80,80,80,1)'
             classID = null;
         }
@@ -562,9 +570,9 @@ LabelTool.prototype = {
             width: loc.width,
             height: loc.height,
             fill: color,
-            opacity: 0.5,
+            opacity: this.opacityBox2,
             strokeWidth: 2,
-            strokeDashArray: [8, 8],
+            strokeDashArray: [8, 2],
             stroke: stroke,
             cornerColor: stroke,
             strokeUniform: true,
@@ -578,21 +586,21 @@ LabelTool.prototype = {
     newLabelBoxPolygon: function(points) {
         var color, stroke, classID
         if(this.selectedClass.id != null) {
-            color = this.selectedClass.color + '66';
+            color = this.selectedClass.color + toHex(Math.round(this.opacityBox*255));
             stroke = this.selectedClass.color;
             classID = this.selectedClass.id;
         }
         else {
-            color = 'rgba(160,160,160,0.4)'
+            color = 'rgba(160,160,160,'+this.opacityBox+')'
             stroke = 'rgba(80,80,80,1)'
             classID = null;
         }
         var config = {
             points: points,
             fill: color,
-            opacity: 0.5,
+            opacity: this.opacityBox2,
             strokeWidth: 2,
-            strokeDashArray: [8, 8],
+            strokeDashArray: [8, 2],
             stroke: stroke,
             cornerColor: stroke,
             strokeUniform: true,
@@ -756,8 +764,8 @@ LabelTool.prototype = {
                     top: fP1.y,
                     width: fP2.x - fP1.x,
                     height: fP2.y - fP1.y,
-                    fill: classInfo.color + '66',
-                    opacity: 0.5,
+                    fill: classInfo.color + toHex(Math.round(this.opacityBox*255)),
+                    opacity: this.opacityBox2,
                     strokeWidth: 2,
                     strokeDashArray: [8, 8],
                     stroke: classInfo.color,
@@ -783,8 +791,8 @@ LabelTool.prototype = {
                 classInfo = this.getLabelClassInfo(classID);
                 config = {
                     points: points,
-                    fill: classInfo.color + '66',
-                    opacity: 0.5,
+                    fill: classInfo.color + toHex(Math.round(this.opacityBox*255)),
+                    opacity: this.opacityBox2,
                     strokeWidth: 2,
                     strokeDashArray: [8, 8],
                     stroke: classInfo.color,
