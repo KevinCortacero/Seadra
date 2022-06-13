@@ -56,7 +56,8 @@
             "texts": [
                 {
                     "name": "Commentaire",
-                    "value": "True"
+                    "value": "True",
+                    "size": 1
                 }
             ]
         },

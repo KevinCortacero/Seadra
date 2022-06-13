@@ -215,6 +215,17 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
+@app.route('/write_json', methods=['GET', 'POST'])
+def write_json():
+    json_data= request.get_json()
+    filepath = json_data[0]["path"]
+    filename = "annot_" + ".".join(os.path.basename(filepath).split(".")[:-1]) +".json"
+    f = open(filename, "w")
+    jsonStr = json.dumps(json_data)
+    f.write(jsonStr)
+    f.close()
+    return make_response("ok", 200)
+
 def slugify(text):
     text = normalize('NFKD', text.lower()).encode('ascii', 'ignore').decode()
     return re.sub('[^a-z0-9]+', '-', text)

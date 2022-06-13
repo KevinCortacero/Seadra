@@ -1,8 +1,8 @@
 
 <!-- Template   -->
 <template>
-<div id="labelling_zone">
-    <v-list-item-group>
+<div id="labelling_zone" class="fluid" style="height: 30vh">
+    <v-list-item-group style="height: 100%; overflow: auto;" >
         <v-list-item
             v-for="(label,i) in this.labels"
             :key="i" @click="selectLabel(i)"
@@ -30,7 +30,7 @@
             dense
           >
     </v-combobox>
-    <v-textarea v-for="(text,i) in this.texts" :key="'text'+i" v-model=text_select[text.name] class="mx-2" v-bind:label="text.name" rows="8" prepend-icon="mdi-comment"></v-textarea>
+    <v-textarea v-for="(text,i) in this.texts" :key="'text'+i" v-model=text_select[text.name] class="mx-2" v-bind:label="text.name" v-bind:rows="text.size" prepend-icon="mdi-comment"></v-textarea>
     <v-btn @click="save_json">Sauvegarder</v-btn>
     </div>
 </template>
@@ -41,6 +41,7 @@
 
 <!-- Script   -->
 <script>
+import axios from 'axios'
 import json_file from "./label.json";
     export default {
         
@@ -64,21 +65,19 @@ import json_file from "./label.json";
         methods: {
             save_json() { // Has to know the image filename
 
-                //let json_array = [this.choice_select, this.check_select, this.text_select]
-                // for (let prop in this.choice_select) {
-                //     console.log(prop)
-                //     json_array.push({ prop : this.choice_select[prop] })
-                // }
-                // for (let prop in this.check_select) {
-                //     console.log(prop)
-                //     json_array.push({ prop : this.check_select[prop] })
-                // }
+                let json_array = [{"path" : this.$store.state.filepath},this.$store.state.getBoxLabels(),this.choice_select, this.check_select, this.text_select]
+                let json_string = JSON.stringify(json_array)
+                console.log(json_string)
 
-                // for (let prop in this.text_select) {
-                //     json_array.push({ prop : this.text_select[prop] })
-                // } 
-                //json_string = JSON.stringify(json_array)
-                console.log(this.$store.state.getBoxLabels())
+                axios.post(this.$request_base_url + "/write_json",json_string, {
+  headers: {
+    // Overwrite Axios's automatically set Content-Type
+    'Content-Type': 'application/json'
+  }
+}).catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
 
             },
             load_json(){

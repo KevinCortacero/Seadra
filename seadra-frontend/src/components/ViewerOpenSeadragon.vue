@@ -38,7 +38,7 @@
     methods: {
       read_slide(filepath) {
         var ext = filepath.split('.').pop()
-        if(['png', 'jpg', 'jpeg'].includes(ext)){
+        if(['png', 'jpg', 'jpeg'].includes(ext.toLowerCase())){
           this.viewer.open({
             type: 'image',
             url: this.$request_base_url+'/getimg/'+window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')+'.png',
