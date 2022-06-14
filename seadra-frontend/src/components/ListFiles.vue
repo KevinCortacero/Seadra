@@ -1,5 +1,5 @@
 <template>
-  <v-card tile style="height:100%">
+  <v-card tile style="height:100%; overflow-y:auto">
 
       <v-text-field label="current directory" v-model.lazy="directory">
         <v-icon slot="prepend">
@@ -62,6 +62,11 @@ export default {
     image: "",
     index: -1,
   }),
+  props:{
+    //directory: {type:String, default:"/home/"},
+    filePath: {type:String},
+  },
+  emits:['update:filePath'],
   computed: {
     current_dir() {
       let dirs = this.directory.slice(0, -1).split('/')
@@ -93,7 +98,7 @@ export default {
     },
 
     load_file(filename) {
-      this.$store.commit('CHANGE_FILEPATH', this.directory + filename)
+      this.$emit('update:filePath',this.directory + filename)
     },
     load_dir(foldername) {
       axios.post(this.$request_base_url + "/list_files", { 'directory': this.directory + foldername })
@@ -131,6 +136,7 @@ export default {
       this.directory = localStorage.directory;
     else
       this.list_files()
+    console.log(this.filePath)
   }
 }
 </script>

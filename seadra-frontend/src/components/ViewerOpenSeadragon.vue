@@ -5,7 +5,6 @@
 <script>
   import OpenSeadragon from 'openseadragon'
   import axios from 'axios'
-  import { mapState } from 'vuex';
 
   export default {
     data: () => ({
@@ -29,9 +28,13 @@
         navigatorId: 'view-nav'
       },
      }),
-    computed: mapState(['filepath']),
+    props:{
+      filePath: {type:String},
+      osd:{type:Object},
+    },
     watch: {
-      filepath(newFilepath){
+      filePath(newFilepath){
+        console.log(newFilepath)
         this.read_slide(newFilepath)
       }
     },
@@ -62,7 +65,7 @@
     mounted() {
       this.viewer = OpenSeadragon(this.options);
       this.viewer.canvas.id = "openseadragon_canvas"
-      this.$store.commit('INIT_OSD', this.viewer)
+      this.$emit('update:osd', this.viewer)
     }
   }
 </script>

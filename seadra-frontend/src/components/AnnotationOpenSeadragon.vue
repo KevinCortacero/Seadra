@@ -43,7 +43,6 @@
 </template>
 
 <script>
-    import { mapState,mapGetters } from 'vuex';
     import LabelTool from '../js/label-tool'
 
     export default {
@@ -53,9 +52,11 @@
             boxSelected: false,
             selectedLabelIndex:0
         }),
-        computed: {
-            ...mapState(['viewerOSD','filepath','labels']),
-            ...mapGetters(['selected_label']),
+        props:{
+            osd: {type:Object},
+            getLabelBoxes: {type:Function},
+            setLabelBoxes: {type:Function},
+            labels: {type:Array},
         },
         watch: {
             // whenever question changes, this function will run
@@ -85,27 +86,30 @@
                 }
             },
             selectedLabelIndex(n){
-                if(this.labelTool && n) this.labelTool.changeLabel(this.labels[n])
+                if(this.labelTool) this.labelTool.changeLabel(this.labels[n])
             },
-            viewerOSD(newOSD){
+            osd(newOSD){
                 if(!this.labelTool){
                     this.labelTool = new LabelTool()
                     this.labelTool.init(newOSD,(selectedBox)=>{
                             this.boxSelected=(selectedBox!==undefined);
                             if(selectedBox){
-                                this.$store.commit('CHANGE_SELECTED_LABEL',selectedBox.classID);
+                                this.selectLabel(selectedBox.classID);
                             }
                         })
-                    this.labelTool.changeLabel(this.selected_label)
+                    this.selectLabel(0)
+                    this.labelTool.changeLabel(this.labels[this.selectedLabelIndex])
                     this.initEventKeyboard()
-                    this.$store.commit('INIT_GETTER_BOXLABELS', ()=>{return this.labelTool.saveLabelBoxes()})
+                    this.$emit('update:getLabelBoxes',()=>{return this.labelTool.saveLabelBoxes()})
+                    this.$emit('update:setLabelBoxes',(data)=>{ 
+                        if(data) this.labelTool.loadLabelBoxes(data)
+                        else this.labelTool.removeAllBoxes()
+                        })
                     window.addEventListener('resize', ()=>this.labelTool.resize());
                 }
             },
-            filepath(){
-                if(this.labelTool){
-                    this.labelTool.removeAllBoxes()
-                }
+            labels(){
+                this.selectLabel(0)
             }
         },
         methods: {
