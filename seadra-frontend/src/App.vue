@@ -1,24 +1,20 @@
 <template>
-  <v-app id="inspire">
-    <v-navigation-drawer v-model="drawer" width="384" app>
+  <v-app id="app">
+    <splitpanes class="default-theme" style="height:100vh" @resized="fireResizeEvent">
+      <pane size="17">
       <list-files/>
-    </v-navigation-drawer>
+      </pane>
 
-    <v-app-bar app>
-      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-
-      <v-toolbar-title>Seadra</v-toolbar-title>
-    </v-app-bar>
-
-    <v-main>
+      <pane>
       <viewer-open-seadragon/>
-    </v-main>
+      </pane>
 
-    <v-navigation-drawer app permanent right width="305">
-      <div style="width:100%;height:250px;"><div id="view-nav" style="width:100%;height:100%;background-color:#424242"></div></div>
-      <annotation-open-seadragon />
-      <custom-labels/> 
-    </v-navigation-drawer>
+      <pane size="17" min-size="17" style="overflow:auto; height:100%;display:flex;flex-direction:column">
+        <div style="width:100%;min-height: 250px;max-height: 250px;"><div id="view-nav" style="width:100%;height:100%;background-color:#424242"></div></div>
+        <annotation-open-seadragon />
+        <custom-labels style="height:100%;"/> 
+      </pane>
+    </splitpanes>
 
 
     
@@ -31,19 +27,25 @@
   import customLabels from '@/components/customLabels.vue'
   import CustomLabels from './components/customLabels.vue'
   import ListFiles from '@/components/ListFiles.vue'
+  import { Splitpanes, Pane } from 'splitpanes'
+  import 'splitpanes/dist/splitpanes.css'
   export default {
     components: {
-    ViewerOpenSeadragon,
-    AnnotationOpenSeadragon,
-    customLabels,
-    CustomLabels,
-    ListFiles,
-},
-    data: () => ({ drawer: null }),
-    mounted(){
-
+        Splitpanes, Pane,
+        ViewerOpenSeadragon,
+        AnnotationOpenSeadragon,
+        customLabels,
+        CustomLabels,
+        ListFiles,
+    },
+    methods: {
+      fireResizeEvent(){
+        window.dispatchEvent(new Event('resize'));
+      }
+    },
+    mounted() {
+      this.fireResizeEvent()
     }
-
   }
 </script>
 
@@ -52,8 +54,6 @@
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>

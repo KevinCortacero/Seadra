@@ -250,7 +250,7 @@ LabelTool.prototype = {
                     if(this.selectedBox) this.selectedBox.set('strokeDashArray', [10, 2]);
                     e.target.set('strokeDashArray', [0, 0]);
                     this.selectedBox = e.target;
-                    this._cbBoxSelected(true)
+                    this._cbBoxSelected(this.labelBoxes[this.selectedBox.get('tab')])
                     this._canvas.renderAll();
                     this.editModeOn();
                 }
@@ -259,7 +259,7 @@ LabelTool.prototype = {
                         this.selectedBox.set('strokeDashArray', [10, 2]);
                         this._canvas.renderAll();
                         this.selectedBox = null;
-                        this._cbBoxSelected(false)
+                        this._cbBoxSelected(undefined)
                     }
                     this.viewModeOn();
                 }
@@ -521,7 +521,7 @@ LabelTool.prototype = {
                 this._canvas.discardActiveObject(this.selectedBox);
                 this.selectedBox.set('strokeDashArray', [10, 2]);
                 this.selectedBox = null;
-                this._cbBoxSelected(false)
+                this._cbBoxSelected(undefined)
             }
         }
         this.lockViewer();
@@ -625,6 +625,12 @@ LabelTool.prototype = {
             height: Math.abs(start.y - end.y)
         };
     },
+    toggleClassVisibility(classID,visible){
+        for(var i in this.labelBoxes) {
+            if(this.labelBoxes[i].classID === classID)this.labelBoxes[i].shape.set('visible', visible);
+        }
+        this._canvas.renderAll();
+    },
     changePosition: function(lastPoint, currentPoint, offsetXDelta, offsetYDelta,deltaZoom) {
         var x, y, w, h, offsetX, offsetY
         for(var i in this.labelBoxes) {
@@ -699,7 +705,7 @@ LabelTool.prototype = {
         }
         this.labelBoxes = {};
         this.selectedBox = null;
-        this._cbBoxSelected(false)
+        this._cbBoxSelected(undefined)
     },
     removeBox: function(id) {
         this._canvas.remove(this.labelBoxes[id].shape)
@@ -719,7 +725,7 @@ LabelTool.prototype = {
                 }
             }
             this.selectedBox = null;
-            this._cbBoxSelected(false)
+            this._cbBoxSelected(undefined)
         }
     },
     resize: function () {

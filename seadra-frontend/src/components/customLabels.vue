@@ -1,19 +1,8 @@
 
 <!-- Template   -->
 <template>
-<div id="labelling_zone" class="fluid" style="height: 30vh">
-    <v-list-item-group style="height: 100%; overflow: auto;" >
-        <v-list-item
-            v-for="(label,i) in this.labels"
-            :key="i" @click="selectLabel(i)"
-            class="label" v-bind:class="i===labelsSelected?'active':''"
-            v-bind:style="{'background-color': label.color}"
-          >
-          <!-- <v-checkbox input-value="1"></v-checkbox> -->
-          <v-list-item-title  >{{label.name}}</v-list-item-title>
-        </v-list-item>
-    </v-list-item-group>
-    <v-combobox style="padding-top:30px" v-for="(choice,i) in this.choices" :key="'choice'+i"
+  <v-card>
+    <v-combobox style="margin-top:30px" v-for="(choice,i) in this.choices" :key="'choice'+i"
             v-model="choice_select[choice.name]"
             v-bind:items= "choice.options"
             v-bind:label="choice.name"
@@ -31,8 +20,10 @@
           >
     </v-combobox>
     <v-textarea v-for="(text,i) in this.texts" :key="'text'+i" v-model=text_select[text.name] class="mx-2" v-bind:label="text.name" v-bind:rows="text.size" prepend-icon="mdi-comment"></v-textarea>
-    <v-btn @click="save_json">Sauvegarder</v-btn>
-    </div>
+    <v-row align="center" justify="space-around">
+        <v-btn @click="save_json">Sauvegarder</v-btn>
+  </v-row>
+  </v-card>
 </template>
 
 
@@ -43,6 +34,7 @@
 <script>
 import axios from 'axios'
 import json_file from "./label.json";
+
     export default {
         
         data() {
@@ -53,11 +45,17 @@ import json_file from "./label.json";
                 choices: [],
                 checks: [],
                 texts: [],
-                labelsSelected: 0
             }
         },
         computed:{
-            
+            labelsVisibility:{
+                get () {
+                return this.$store.state.labelsVisibility
+                },
+                set (value) {
+                this.$store.commit('UPDATE_LABELS_VISIBILITY', value)
+                }
+            }
         },
         watch:{
 
@@ -70,14 +68,10 @@ import json_file from "./label.json";
                 console.log(json_string)
 
                 axios.post(this.$request_base_url + "/write_json",json_string, {
-  headers: {
-    // Overwrite Axios's automatically set Content-Type
-    'Content-Type': 'application/json'
-  }
-}).catch((error) => {
-          // eslint-disable-next-line
-          console.error(error);
-        });
+                    headers: {'Content-Type': 'application/json'}
+                }).catch((error) => {
+                    console.error(error);
+                });
 
             },
             load_json(){
@@ -89,7 +83,6 @@ import json_file from "./label.json";
                 this.$store.commit('CHANGE_SELECTED_LABEL',0);
             },
             selectLabel(index){
-                this.labelsSelected = index;
                 this.$store.commit('CHANGE_SELECTED_LABEL',index);
             }
         },
@@ -118,18 +111,3 @@ import json_file from "./label.json";
 
 
 
-
-<!-- Style    -->
-<style>
-.label{
-    height: 48px;
-    margin-right: 50px;
-    margin-top: 2px;
-    border-radius: 0 24px 24px 0;
-}
-.active{
-    margin-right: 10px;
-}
-
-
-</style>

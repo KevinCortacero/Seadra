@@ -23,6 +23,21 @@
                 </v-btn>
             </v-btn-toggle>
         </v-row>
+
+        <v-row>
+    <v-list-item-group style="width:100%">
+        <v-list-item dense
+            v-for="(label,i) in this.labels"
+            :key="i" 
+            class="label" v-bind:class="i==selectedLabelIndex?'active':''"
+            v-bind:style="{'background-color': label.color}"
+          >
+          <!-- <v-checkbox input-value="1"></v-checkbox> -->
+              <v-checkbox :on-icon="'mdi-eye'" :off-icon="'mdi-eye-off'"  @change="labelTool.toggleClassVisibility(i,$event)" :input-value=true color="black"></v-checkbox>
+          <v-list-item-title @click="selectLabel(i)">{{label.name}}</v-list-item-title>
+        </v-list-item>
+    </v-list-item-group>
+        </v-row>
         </v-card-text>
   </v-card>
 </template>
@@ -36,9 +51,10 @@
             selected_tool: undefined,
             labelBoxes: {},
             boxSelected: false,
+            selectedLabelIndex:0
         }),
         computed: {
-            ...mapState(['viewerOSD','filepath']),
+            ...mapState(['viewerOSD','filepath','labels']),
             ...mapGetters(['selected_label']),
         },
         watch: {
@@ -68,13 +84,18 @@
                     }
                 }
             },
-            selected_label(n){
-                if(this.labelTool) this.labelTool.changeLabel(n)
+            selectedLabelIndex(n){
+                if(this.labelTool && n) this.labelTool.changeLabel(this.labels[n])
             },
             viewerOSD(newOSD){
                 if(!this.labelTool){
                     this.labelTool = new LabelTool()
-                    this.labelTool.init(newOSD,(isSelected)=>this.boxSelected=isSelected)
+                    this.labelTool.init(newOSD,(selectedBox)=>{
+                            this.boxSelected=(selectedBox!==undefined);
+                            if(selectedBox){
+                                this.$store.commit('CHANGE_SELECTED_LABEL',selectedBox.classID);
+                            }
+                        })
                     this.labelTool.changeLabel(this.selected_label)
                     this.initEventKeyboard()
                     this.$store.commit('INIT_GETTER_BOXLABELS', ()=>{return this.labelTool.saveLabelBoxes()})
@@ -115,7 +136,10 @@
             },
             getValue(){
                 console.log(this.labelTool.saveLabelBoxes())
-            }
+            },
+            selectLabel(index){
+                this.selectedLabelIndex = index
+            },
         },
         mounted() {
         },
@@ -124,3 +148,19 @@
         },
   }
 </script>
+
+
+<!-- Style    -->
+<style>
+.label{
+    height: 40px;
+    margin-right: 50px;
+    margin-top: 2px;
+    border-radius: 0 20px 20px 0;
+}
+.active{
+    margin-right: 10px;
+}
+
+
+</style>

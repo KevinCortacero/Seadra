@@ -1,19 +1,16 @@
 <template>
-  <v-card id="list-files" class="mx-auto" max-width="384" tile>
+  <v-card tile style="height:100%">
 
-
-    <template>
       <v-text-field label="current directory" v-model.lazy="directory">
         <v-icon slot="prepend">
           mdi-folder
         </v-icon>
 
       </v-text-field>
-    </template>
 
     <!-- Plain mode -->
 
-    <v-list flat>
+    <v-list dense>
       <v-subheader v-text="current_dir"></v-subheader>
       <v-list-item-group mandatory color="primary">
         <v-list-item @click="goback()">
@@ -24,7 +21,7 @@
             <v-list-item-title>..</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item v-for="(foldername, i) in folders" :key="i" @click="load_dir(foldername)">
+        <v-list-item v-for="(foldername, i) in folders" :key="i" @click="load_dir(foldername)" dense>
           <v-list-item-icon>
             <v-icon> mdi-folder </v-icon>
           </v-list-item-icon>
