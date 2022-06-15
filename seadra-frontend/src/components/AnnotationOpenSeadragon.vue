@@ -3,15 +3,21 @@
         <v-card-text>
         <v-row>
             <v-btn-toggle v-model="selected_tool" mandatory color="primary">
-                <v-btn :value="'fabric-move'">
+                <v-btn :value="'fabric-view'">
                     <v-icon>mdi-drag-variant</v-icon>
+                </v-btn>
+                <v-btn :value="'fabric-edit'">
+                    <v-icon>mdi-cursor-pointer</v-icon>
                 </v-btn>
                 <v-btn :value="'fabric-rect'">
                     <v-icon>mdi-shape-rectangle-plus</v-icon>
                 </v-btn>
                 <v-btn :value="'fabric-polygon'">
                     <v-icon>mdi-vector-polygon</v-icon>
-                </v-btn>
+                </v-btn><!--
+                <v-btn :value="'fabric-ellipse'">
+                    <v-icon>mdi-shape-circle-plus</v-icon>
+                </v-btn>-->
             </v-btn-toggle>
             <div class="v-item-group v-btn-toggle primary--text" :class="$vuetify.theme.dark?'theme--dark':'theme--light'">
                 <v-btn v-if="boxSelected" @click="labelTool.removeSelected()">
@@ -66,11 +72,15 @@
             
             selected_tool(newSlected) {
                 if(this.labelTool){
-                    if(newSlected==="fabric-move"){
+                    if(newSlected==="fabric-view"){
+                        this.labelTool.viewModeOn();
+                    } else if(newSlected==="fabric-edit"){
                         this.labelTool.editModeOn();
                     } else if(newSlected==="fabric-rect"){
                         this.labelTool.drawModeOn(true)
                     } else if(newSlected==="fabric-polygon") {
+                        this.labelTool.drawModeOn(false)
+                    } else if(newSlected==="fabric-ellipse") {
                         this.labelTool.drawModeOn(false)
                     }
                 }
