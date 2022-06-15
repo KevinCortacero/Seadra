@@ -61,11 +61,5 @@
                 }
             ]
         },
-        "customs2": [{
-            "name":"coucou",
-            "options":["k1","k2"],
-            "type": "multicheck"
-
-        }],
         "annotatedImage":[{"pathImg":"","annotationPath":""}]
 }

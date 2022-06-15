@@ -91,9 +91,11 @@ def convertB64(path):
 @app.route('/list_files', methods=['POST'])
 def list_files():
     request_json = request.get_json()
+    print(request_json)
     current_path = os.path.abspath(request_json.get('directory'))
+    ext = tuple(request_json.get('ext'))
     listFiles = os.listdir(current_path)
-    onlyfiles = [f for f in listFiles if os.path.isfile(os.path.join(current_path, f)) & f.lower().endswith(fileExtensionAvailable)]
+    onlyfiles = [f for f in listFiles if os.path.isfile(os.path.join(current_path, f)) & f.lower().endswith(ext)]
     onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyfiles)]
     return {'files': onlyfiles, 'folders': onlyDirs, 'currentPath': current_path}
 
@@ -104,9 +106,8 @@ def thumbnail():
     img = open_slide(current_path).get_thumbnail((200, 200))
 
     img = export_img_cv2( img)
-
-    
     return img
+
 @app.route('/get_slide_infos/<path>')
 def get_slide_infos(path):
     file = convertB64(path)
@@ -118,6 +119,18 @@ def get_slide_infos(path):
     }
     return infos
 
+
+@app.route('/newproject', methods=[ 'POST'])
+def newProject():
+    json = request.get_json()
+    path = json.get('path')
+    print(path)
+    if os.path.exists(path):
+        abort(404)
+    os.mkdir(path)
+    configFile = os.path.join(path,'config.seadra')
+    open(os.path.join(path,'config.seadra'), 'a').close()
+    return {'configFile':configFile}
 
 @app.route('/get_dir_config', methods=['get'])
 def getDirConfig():
@@ -209,16 +222,24 @@ def tile(slug, level, col, row, _format):
         abort(404)
 
 
-@app.route('/write_json', methods=['GET', 'POST'])
+@app.route('/write_json', methods=['POST'])
 def write_json():
-    json_data= request.get_json()
-    filepath = json_data[0]["path"]
-    filename = "annot_" + ".".join(os.path.basename(filepath).split(".")[:-1]) +".json"
-    f = open(filename, "w")
-    jsonStr = json.dumps(json_data)
+    json_data = request.get_json()
+    filepath = json_data["filepath"]
+    f = open(filepath, "w")
+    jsonStr = json.dumps(json_data['data'])
     f.write(jsonStr)
     f.close()
     return make_response("ok", 200)
+
+@app.route('/read_json', methods=['POST'])
+def read_json():
+    json_data = request.get_json()
+    filepath = json_data["filepath"]
+    f = open(filepath, "r")
+    j = json.load(f)
+    f.close()
+    return j
 
 def slugify(text):
     text = normalize('NFKD', text.lower()).encode('ascii', 'ignore').decode()

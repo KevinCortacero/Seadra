@@ -49,6 +49,9 @@ function LabelTool() {
     this.labelBoxes = {};
     this.saveState = true;
 
+    this.tempBoxData = undefined
+    this.labels = undefined
+
 }
 
 LabelTool.prototype = {
@@ -215,6 +218,9 @@ LabelTool.prototype = {
                 }
             },
             'mouse:down':(e) => {
+        console.log(this._osdViewer.viewport.pixelFromPoint(this._osdViewer.viewport.getHomeBounds(true).getSize() ))
+        console.log(this._osdViewer.viewport.pixelFromPoint(this._osdViewer.viewport.getHomeBounds(false).getSize() ))
+        
                 if(this.drawMode) {
                     if(this.drawRectangle) {
                         this.drawing = true;
@@ -420,9 +426,19 @@ LabelTool.prototype = {
             this.lastZoom = this._osdViewer.viewport.getZoom(true);
         });
         this._osdViewer.addHandler('open', () => {
+/*
+    var tiledImage = this._osdViewer.world.getItemAt(0);
+    var bounds = tiledImage.getBounds();
+    this._osdViewer.viewport.fitBounds(bounds, true);*/
+            window.dispatchEvent(new Event('resize'));
+            this._osdViewer.viewport.zoomTo(2, null, true);
+            this._osdViewer.viewport.applyConstraints();
             this.loading = false;
         });
         this._osdViewer.addHandler('viewport-change', () => {
+            
+            if(this.tempBoxData)this.loadLabelBoxes(this.tempBoxData)
+            this.tempBoxData = undefined;
             if(!this.lastZoom)
                 this.lastZoom = this._osdViewer.viewport.getZoom(true);
             if(!this.lastCenter)
@@ -745,6 +761,8 @@ LabelTool.prototype = {
         //this.updateLabelCount(classID, true);
     },
     loadLabelBoxes: function(boxes) {
+        console.log(this._osdViewer.viewport.pixelFromPoint(this._osdViewer.viewport.getHomeBounds(true).getSize() ))
+        console.log(this._osdViewer.viewport.pixelFromPoint(this._osdViewer.viewport.getHomeBounds(false).getSize() ))
         this.removeAllBoxes();
         var classInfo, config
         for(var i in boxes) {
@@ -764,7 +782,7 @@ LabelTool.prototype = {
                 var fP1 = this._osdViewer.viewport.pixelFromPoint(vP1);
                 var fP2 = this._osdViewer.viewport.pixelFromPoint(vP2);
 
-                classInfo = this.getLabelClassInfo(classID);
+                classInfo = this.labels[classID];
                 config = {
                     left: fP1.x,
                     top: fP1.y,
@@ -783,6 +801,7 @@ LabelTool.prototype = {
                     tab: classID
                 }
                 this.addNewBox(new LabelBoxRectangle(config));
+                console.log("new box",config)
             }
             else {
                 var points = [];
@@ -794,7 +813,7 @@ LabelTool.prototype = {
                     fP = this._osdViewer.viewport.pixelFromPoint(vP);
                     points.push(fP);
                 }
-                classInfo = this.getLabelClassInfo(classID);
+                classInfo = this.labels[classID];
                 config = {
                     points: points,
                     fill: classInfo.color + toHex(Math.round(this.opacityBox*255)),
@@ -811,6 +830,7 @@ LabelTool.prototype = {
                 }
                 var boxPoly = new LabelBoxPolygon(config)
                 this.addNewBox(boxPoly);
+                console.log("new poly")
                 this._changeEditMode(boxPoly.shape, boxPoly.shape.cornerColor);
             }
         }
@@ -845,10 +865,10 @@ LabelTool.prototype = {
             else {
                 // polygon label box
                 var fPs = [];
-                for(i in item.shape.points) {
+                for(var j in item.shape.points) {
                     var point = fabric.util.transformPoint({
-                        x: (item.shape.points[i].x - item.shape.pathOffset.x),
-                        y: (item.shape.points[i].y - item.shape.pathOffset.y)
+                        x: (item.shape.points[j].x - item.shape.pathOffset.x),
+                        y: (item.shape.points[j].y - item.shape.pathOffset.y)
                         }, fabric.util.multiplyTransformMatrices(
                             item.shape.canvas.viewportTransform,
                             item.shape.calcTransformMatrix()
@@ -856,9 +876,9 @@ LabelTool.prototype = {
                         fPs.push(point);
                 }
                 var points = [];
-                for(i in fPs) {
+                for(var k in fPs) {
                     // viewport(OSD) point from pixel(Fabric)
-                    vP = this._osdViewer.viewport.pointFromPixel(new OpenSeadragon.Point(fPs[i].x, fPs[i].y));
+                    vP = this._osdViewer.viewport.pointFromPixel(new OpenSeadragon.Point(fPs[k].x, fPs[k].y));
                     // image(slide) point from viewport(OSD)
                     iP = this._osdViewer.viewport.viewportToImageCoordinates(vP.x, vP.y);
                     points.push(iP);

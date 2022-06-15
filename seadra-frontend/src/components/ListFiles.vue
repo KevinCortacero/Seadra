@@ -1,7 +1,7 @@
 <template>
-  <v-card tile style="height:100%; overflow-y:auto">
+  <v-card tile style="height:100%; overflow-y:auto;border-radius:0px;">
 
-      <v-text-field label="current directory" v-model.lazy="directory">
+      <v-text-field label="current directory" v-model.lazy="directoryEditor">
         <v-icon slot="prepend">
           mdi-folder
         </v-icon>
@@ -34,11 +34,15 @@
           <!-- <v-img v-bind:src="image"> -->
 
           <!-- </v-img> -->
-          <v-list-item-icon @mouseover="mousein(filename, i)" @mouseleave="mouseout()">
+          <v-list-item-icon v-if="imagePreview" @mouseover="mousein(filename, i)" @mouseleave="mouseout()">
             <img v-if="hover == true && i == index" v-bind:src="image" class="tooltiptext">
             <v-icon> mdi-image </v-icon>
-
           </v-list-item-icon>
+
+          <v-list-item-icon v-else>
+            <v-icon> mdi-image </v-icon>
+          </v-list-item-icon>
+
           <v-list-item-content>
             <v-list-item-title v-text="filename"></v-list-item-title>
           </v-list-item-content>
@@ -53,9 +57,8 @@ import axios from 'axios'
 
 export default {
   data: () => ({
-    directory: "/home/",
-
     files: [],
+    directoryEditor:'/',
     folders: [],
     timeout: 0,
     hover: false,
@@ -63,8 +66,10 @@ export default {
     index: -1,
   }),
   props:{
-    //directory: {type:String, default:"/home/"},
+    directory: {type:String, default:"/home/"},
     filePath: {type:String},
+    fileExtensions: {default:[]},
+    imagePreview:{type:Boolean, default:false}
   },
   emits:['update:filePath'],
   computed: {
@@ -75,9 +80,14 @@ export default {
     }
   },
   watch: {
-    directory(new_dir) {
+    directoryEditor(new_dir) {
       if (new_dir[new_dir.length - 1] === "/" && new_dir !== "/") {
-        this.list_files()
+        this.list_files(new_dir)
+      }
+    },
+    directory(new_dir) {
+      if (new_dir !==this.directoryEditor) {
+        this.list_files(new_dir)
       }
     }
   },
@@ -87,7 +97,7 @@ export default {
       this.image = ""
       this.hover = true;
       this.index = i;
-      axios.post(this.$request_base_url + "/thumbnail", { 'directory': this.directory + name })
+      axios.post(this.$request_base_url + "/thumbnail", { directory: this.directory + name })
         .then(result => {
           this.image = "data:image/png;base64," + result.data
         })
@@ -101,22 +111,21 @@ export default {
       this.$emit('update:filePath',this.directory + filename)
     },
     load_dir(foldername) {
-      axios.post(this.$request_base_url + "/list_files", { 'directory': this.directory + foldername })
+      axios.post(this.$request_base_url + "/list_files", { directory: this.directoryEditor + foldername, ext:this.fileExtensions })
         .then(result => {
           this.update_data(result.data)
         })
     },
     goback() {
-      axios.post(this.$request_base_url + "/list_files", { 'directory': this.directory + '..' })
+      axios.post(this.$request_base_url + "/list_files", { directory: this.directoryEditor + '..', ext:this.fileExtensions })
         .then(result => {
           this.update_data(result.data)
 
         })
     },
 
-    list_files() {
-
-      axios.post(this.$request_base_url + "/list_files", { 'directory': this.directory })
+    list_files(dir) {
+      axios.post(this.$request_base_url + "/list_files", { directory: dir, ext:this.fileExtensions })
         .then(result => {
           this.update_data(result.data)
 
@@ -125,18 +134,12 @@ export default {
     update_data(data) {
       this.files = data.files;
       this.folders = data.folders;
-      this.directory = data.currentPath + ((data.currentPath !== "/") ? "/" : "");
-      localStorage.directory = this.directory;
-
-
+      this.directoryEditor = data.currentPath + ((data.currentPath !== "/") ? "/" : "");
+      this.$emit('update:directory',this.directoryEditor);
     }
   },
   mounted() {
-    if(localStorage.directory)
-      this.directory = localStorage.directory;
-    else
-      this.list_files()
-    console.log(this.filePath)
+    this.directoryEditor = this.directory;
   }
 }
 </script>

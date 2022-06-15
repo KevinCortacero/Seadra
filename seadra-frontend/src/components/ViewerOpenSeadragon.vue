@@ -16,7 +16,6 @@
         constrainDuringPan: true,
         maxZoomPixelRatio: 2,
         defaultZoomLevel: 1,
-        homeFillsViewer: true,
         minZoomLevel: 1,
         visibilityRatio: 1,
         zoomPerScroll: 2,
@@ -34,7 +33,6 @@
     },
     watch: {
       filePath(newFilepath){
-        console.log(newFilepath)
         this.read_slide(newFilepath)
       }
     },
@@ -59,7 +57,6 @@
           });
         }
 
-        window.dispatchEvent(new Event('resize'));
       }
     },
     mounted() {

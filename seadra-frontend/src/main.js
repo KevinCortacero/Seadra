@@ -4,6 +4,7 @@ import vuetify from './plugins/vuetify'
 Vue.config.productionTip = false
 
 Vue.prototype.$request_base_url = 'http://localhost:4000'
+// Light theme
 
 new Vue({
   vuetify,
