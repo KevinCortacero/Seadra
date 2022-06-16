@@ -47,15 +47,16 @@
     },
     methods: {
       read_slide(filepath) {
-        this.overlay = true
         var ext = filepath.split('.').pop()
         if(['png', 'jpg', 'jpeg'].includes(ext.toLowerCase())){
+          this.overlay = true
           this.viewer.open({
             type: 'image',
             url: this.$request_base_url+'/getimg/'+window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')+'.png',
             buildPyramid: false
           })
-        } else {
+        } else if(filepath!==''){
+          this.overlay = true
           var request_url = this.$request_base_url + "/get_slide_infos/"
           request_url += window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')
           console.log("read slide: " , request_url)
@@ -65,6 +66,8 @@
             //this.viewer.scalebar({pixelsPerMeter: result.mpp ? (1e6 / result.mpp) : 0});
           //}
           });
+        } else {
+          this.viewer.close()
         }
       },
 
@@ -79,6 +82,9 @@
         })
         
         this.viewer.addHandler('viewport-change', () => {
+          this.overlay = false
+        })
+        this.viewer.addHandler('open-failed',()=>{
           this.overlay = false
         })
       }

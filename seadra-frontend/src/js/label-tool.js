@@ -2,6 +2,37 @@ import {fabric} from 'fabric';
 import OpenSeadragon from 'openseadragon'
 import {LabelBoxRectangle,LabelBoxPolygon,LabelBoxEllipse} from './label-box'
 
+var __cnvs = undefined
+    fabric.Object.prototype.controls.rotateShape = new fabric.Control({
+        x: 0,
+        y: -0.5,
+        cursorStyle: 'pointer',
+        mouseDownHandler: function (ed, t) {
+            __cnvs.fire('object:scaling', { target: this });
+            var center = t.target.getCenterPoint()
+            var ryOld = t.target.getRy()
+            var rad = t.target.angle * (Math.PI / 180)
+            t.target.sp = { x: center.x - Math.sin(rad) * ryOld, y: center.y + Math.cos(rad) * ryOld }
+            return true
+        },
+        actionHandler: function (ed, t, x, y) {
+            //var center = { x: this.startPoint.x + (point.x - this.startPoint.x) / 2, y: this.startPoint.y + (point.y - this.startPoint.y) / 2 }
+            var center = t.target.getCenterPoint()
+            var ryOld2 = t.target.getRy()
+            t.target.left = t.target.sp.x + (x - t.target.sp.x) / 2
+            t.target.top = t.target.sp.y + (y - t.target.sp.y) / 2
+            var ry = len({ x, y }, center)
+            t.target.scaleY = ry / t.target.ry
+            t.target.scaleX = ry / ryOld2 * t.target.scaleX
+            t.target.angle = Math.atan2(x - center.x, center.y - y) * (180 / Math.PI)
+            return true
+        },
+        mouseUpHandler: function(ed, t){
+            __cnvs.fire('object:modified', { target: t.target });
+        },
+        render: function(ctx, left, top, styleOverride, fabricObject){fabric.controlsUtils.renderCircleControl(ctx, left, top, {transparentCorners:false}, fabricObject)}
+    });
+
 function toHex(d) {
     return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase()
 }
@@ -97,6 +128,7 @@ LabelTool.prototype = {
         this._labelViewerDiv.appendChild(this._labelCanvas);
 
         this._canvas = new fabric.Canvas('labelCanvas')
+        __cnvs = this._canvas
         this._canvas.selection = false;
         this._canvas.preserveObjectStacking = true;
     
@@ -451,10 +483,12 @@ LabelTool.prototype = {
             this.lastZoom = this._osdViewer.viewport.getZoom(true);
         });
         this._osdViewer.addHandler('open', () => {
-                this.labelBoxes = {};
                 window.dispatchEvent(new Event('resize'));
                 this._osdViewer.viewport.zoomTo(2, null, true);
                 this._osdViewer.viewport.applyConstraints();
+        });
+        this._osdViewer.addHandler('close', () => {
+            this.removeAllBoxes()
         });
         this._osdViewer.addHandler('viewport-change', () => {
             if(this.tempBoxData){
@@ -695,7 +729,8 @@ LabelTool.prototype = {
             cornerColor: stroke,
             strokeUniform: true,
             _controlsVisibility:{
-                mtr: false
+                mtr: false,
+                rotateShape:false
             },
             tab: classID
         }
@@ -728,6 +763,14 @@ LabelTool.prototype = {
             strokeUniform: true,
             originX:'center',
             originY:'center',
+            _controlsVisibility:{
+                mtr: false,
+                tl: false,
+                bl:false,
+                tr:false,
+                br:false,
+                mt:false,
+            },
             tab: classID
         }
         return new LabelBoxEllipse(boxConfig);
@@ -754,7 +797,8 @@ LabelTool.prototype = {
             cornerColor: stroke,
             strokeUniform: true,
             _controlsVisibility:{
-                mtr: false
+                mtr: false,
+                rotateShape:false
             },
             tab: classID
         }
@@ -939,7 +983,8 @@ LabelTool.prototype = {
                     cornerColor: classInfo.color,
                     strokeUniform: true,
                     _controlsVisibility:{
-                        mtr: false
+                        mtr: false,
+                        rotateShape:false
                     },
                     tab: classID
                 }
@@ -964,7 +1009,8 @@ LabelTool.prototype = {
                     cornerColor: classInfo.color,
                     strokeUniform: true,
                     _controlsVisibility:{
-                        mtr: false
+                        mtr: false,
+                        rotateShape:false
                     },
                     tab: classID
                 }
@@ -999,6 +1045,14 @@ LabelTool.prototype = {
                     strokeUniform: true,
                     originX:'center',
                     originY:'center',
+                    _controlsVisibility:{
+                        mtr: false,
+                        tl: false,
+                        bl:false,
+                        tr:false,
+                        br:false,
+                        mt:false,
+                    },
                     tab: classID
                 }
                 this.addNewBox(new LabelBoxEllipse(config));

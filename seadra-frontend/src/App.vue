@@ -127,6 +127,8 @@
         this.templateAnnotations = data;
         this.showProjectConfig = false;
         this.labels = data.colorsLabels.map((l,i)=>{l.id=i;return l});
+        this.imageFilePath = '';
+        this.window = 0
       },
       fireResizeEvent(){
         window.dispatchEvent(new Event('resize'));
@@ -169,18 +171,20 @@
         localStorage.pathConfig = this.pathConfig;
       },
       imageFilePath(){
-        this.window = 1
-        var filepath = this.pathConfig+"annot_" + this.imageFilePath.substr(this.imageFilePath.lastIndexOf('/')+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf('/')-1) +".json"
-        axios.post(this.$request_base_url + "/read_json",{filepath:filepath}, {
-            headers: {'Content-Type': 'application/json'}
-        }).then(res=>{
-          this.annotations = res.data.annotations;
-          this.setBoxes(res.data.boxes);
-        }).catch((error) => {
-          console.error(error);
-            this.annotations = {};
-            this.setBoxes([]);
-        });
+        if(this.imageFilePath!==''){
+          this.window = 1
+          var filepath = this.pathConfig+"annot_" + this.imageFilePath.substr(this.imageFilePath.lastIndexOf('/')+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf('/')-1) +".json"
+          axios.post(this.$request_base_url + "/read_json",{filepath:filepath}, {
+              headers: {'Content-Type': 'application/json'}
+          }).then(res=>{
+            this.annotations = res.data.annotations;
+            this.setBoxes(res.data.boxes);
+          }).catch((error) => {
+            console.error(error);
+              this.annotations = {};
+              this.setBoxes([]);
+          });
+        }
       }
     },
     mounted() {
@@ -190,8 +194,6 @@
 
       this.fireResizeEvent()
       this.load_json();
-      if(localStorage.directory)
-        this.directory = localStorage.directory;
 
 
       const theme = localStorage.getItem("darkTheme");
@@ -203,16 +205,25 @@
           } else {
               this.$vuetify.theme.dark = false;
           }
-      } else if (
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-      ) {
+      } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
           this.$vuetify.theme.dark = true;
           localStorage.setItem(
               "darkTheme",
               this.$vuetify.theme.dark.toString()
           );
       }
+      axios.post(this.$request_base_url + "/read_json",{filepath:this.pathConfig+'config.seadra'}, {
+          headers: {'Content-Type': 'application/json'}
+      }).then(res=>{
+        if(Object.keys(res.data).length>0){
+            this.doneConfig(res.data);
+            console.log('config loaded')
+        } else {
+            console.log('config file is empty')
+        }
+      }).catch(() => {
+            console.log('file not found : '+this.pathConfig+'config.seadra')
+          });
     },
   }
 </script>
