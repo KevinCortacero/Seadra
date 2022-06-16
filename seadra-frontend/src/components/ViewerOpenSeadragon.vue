@@ -1,5 +1,5 @@
 <template>
-<div style="width:100%; height:100%">
+<div style="width:100%; height:100%" class="d-flex">
 <v-overlay :value="overlay" :absolute="true">
       <v-progress-circular
         indeterminate
@@ -7,6 +7,16 @@
       ></v-progress-circular>
     </v-overlay>
     <div id="openseadragon" style="width:100%; height:100%"></div>
+    <v-slider
+  :max="zoom.max"
+  :min="0"
+  vertical
+  @input="sliderChange"
+  style="width:20px;"
+  class="large-slider"
+  v-model="zoom.current"
+  step='1'
+></v-slider>
 </div>
 </template>
 
@@ -34,7 +44,8 @@
         preserveImageSizeOnResize:true,
         navigatorId: 'view-nav'
       },
-      overlay:false
+      overlay:false,
+      zoom:{min:0,max:1,current:1,prevValue:1}
      }),
     props:{
       filePath: {type:String},
@@ -43,7 +54,7 @@
     watch: {
       filePath(newFilepath){
         this.read_slide(newFilepath)
-      }
+      },
     },
     methods: {
       read_slide(filepath) {
@@ -82,11 +93,28 @@
         })
         
         this.viewer.addHandler('viewport-change', () => {
-          this.overlay = false
+          if(this.overlay){
+            this.zoom.max = Math.log(this.viewer.viewport.getMaxZoom())/Math.log(1.1)
+            this.zoom.min = Math.log(this.viewer.viewport.getMinZoom())/Math.log(1.1)
+            this.overlay = false
+          }
         })
         this.viewer.addHandler('open-failed',()=>{
           this.overlay = false
         })
+        this.viewer.addHandler('zoom', (e) => {
+            var nZ = Math.log(e.zoom)/Math.log(1.1)
+            this.zoom.current=nZ
+            this.zoom.prevValue=nZ
+        });
+      },
+      sliderChange(value){
+          if(value!=this.zoom.prevValue){
+            var factor = Math.pow( 1.1, value-this.zoom.prevValue );
+            this.viewer.viewport.zoomBy(factor, null);
+            this.viewer.viewport.applyConstraints();
+            this.zoom.prevValue = value
+          }
       }
     },
     mounted() {
@@ -94,3 +122,16 @@
     }
   }
 </script>
+<style>
+.large-slider{
+  min-height: 100%!important;
+}
+
+.v-slider {
+  min-height: 100%!important;
+}
+.v-input__slot{
+  min-height: 100%!important;
+  padding: 10px 0 10px 0;
+}
+</style>
