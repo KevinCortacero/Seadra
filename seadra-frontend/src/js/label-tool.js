@@ -377,9 +377,10 @@ LabelTool.prototype = {
                                 point = e.pointer;
                                 if(this.isPointOutCanvas(point))
                                     point = this.limitPoint(point);
-                                this.auxBoxEllipse.set("left", this.startPoint.x);
-                                this.auxBoxEllipse.set("top", this.startPoint.y);
-                                var ry = len(point,this.startPoint)
+                                var center = {x:this.startPoint.x+(point.x-this.startPoint.x)/2,y:this.startPoint.y+(point.y-this.startPoint.y)/2}
+                                this.auxBoxEllipse.set("left", center.x);
+                                this.auxBoxEllipse.set("top", center.y);
+                                var ry = len(point,center)
                                 this.auxBoxEllipse.set("ry", ry);
                                 this.auxBoxEllipse.set("rx", ry*this.lastEllipseRatio);
                                 this.auxBoxEllipse.set("angle", Math.atan2(point.x-this.startPoint.x, this.startPoint.y-point.y)* (180 / Math.PI));

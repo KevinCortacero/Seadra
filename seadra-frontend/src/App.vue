@@ -69,7 +69,23 @@
       </pane>
     </splitpanes>
       </div>
-
+<v-snackbar
+      v-model="notif.show"
+      :timeout="notif.timeout"
+      :color="notif.color"
+      outlined
+    >
+      {{notif.text}}
+      <template v-slot:action="{ attrs }">
+        <v-btn
+          text
+          v-bind="attrs"
+          @click="notif.show = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -103,7 +119,8 @@
       showProjectConfig: true,
       window: undefined,
       pathConfig: localStorage.directory?localStorage.pathConfig:'/home/',
-      annotations:{}
+      annotations:{},
+      notif:{show:false,timeout:2000,text:"",color:"success"}
     }),
     methods: {
       doneConfig(data){
@@ -122,7 +139,20 @@
         var filepath = this.pathConfig+"annot_" + this.imageFilePath.substr(this.imageFilePath.lastIndexOf('/')+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf('/')-1) +".json"
         axios.post(this.$request_base_url + "/write_json",{filepath:filepath,data:{path:this.imageFilePath,boxes:this.getBoxes(),annotations:this.annotations}}, {
             headers: {'Content-Type': 'application/json'}
+        }).then(()=>{
+          this.notif = {
+            show:true,
+            text:"annotation saved",
+            color:'success',
+            timeout:2000
+          }
         }).catch((error) => {
+          this.notif = {
+            show:true,
+            text:"error while saving",
+            color:'error',
+            timeout:2000
+          }
             console.error(error);
         });
       },
