@@ -68,7 +68,8 @@ function LabelTool() {
 }
 
 LabelTool.prototype = {
-    init: function(osd,cbBoxSelected) {
+    init: function(osd,boxCounter,cbBoxSelected) {
+        this.updateLabelCount = boxCounter;
         this._osdViewer = osd
         this._cbBoxSelected = cbBoxSelected
         this.initFabric();
@@ -295,15 +296,16 @@ LabelTool.prototype = {
             'mouse:up':(e) => {
                 this.mouseDown = false;
                 // finish draw rect
+                var point, loc, newBox;
                 if(this.drawing && this.drawRectangle) {
                     this.auxBoxRectangle.set("visible", false);
-                    var point = e.pointer;
+                    point = e.pointer;
                     if(this.isPointOutCanvas(point))
                         point = this.limitPoint(point);
-                    var loc = this.computeLocation(this.startPoint, point);
+                    loc = this.computeLocation(this.startPoint, point);
 
                     if(this.isRational(loc)) {
-                        var newBox = this.newLabelBoxRectangle(loc);
+                        newBox = this.newLabelBoxRectangle(loc);
                         this.addNewBox(newBox);
                         this.saveState = false;
                         //this.drawModeOn(true);
@@ -312,13 +314,13 @@ LabelTool.prototype = {
                     this.startPoint = null;
                 } else if(this.drawing && this.drawEllipse){
                     this.auxBoxEllipse.set("visible", false);
-                    var point = e.pointer;
+                    point = e.pointer;
                     if(this.isPointOutCanvas(point))
                         point = this.limitPoint(point);
-                    var loc = this.computeLocation(this.startPoint, point);
+                    loc = this.computeLocation(this.startPoint, point);
 
                     if(this.isRational(loc)) {
-                        var newBox = this.newLabelBoxEllipse({top:this.auxBoxEllipse.shape.top,left:this.auxBoxEllipse.shape.left,rx:this.auxBoxEllipse.shape.rx,ry:this.auxBoxEllipse.shape.ry,angle:this.auxBoxEllipse.shape.angle});
+                        newBox = this.newLabelBoxEllipse({top:this.auxBoxEllipse.shape.top,left:this.auxBoxEllipse.shape.left,rx:this.auxBoxEllipse.shape.rx,ry:this.auxBoxEllipse.shape.ry,angle:this.auxBoxEllipse.shape.angle});
                         this.addNewBox(newBox);
                         this.saveState = false;
                         //this.drawModeOn(true);
@@ -338,10 +340,11 @@ LabelTool.prototype = {
                     
                     if(this.drawing) {
                     // draw rectangle box
+                        var point
                         if(this.drawRectangle){
                             if(!this.startPoint) return;
                             if(this.startPoint) {
-                                var point = e.pointer;
+                                point = e.pointer;
                                 if(this.isPointOutCanvas(point))
                                     point = this.limitPoint(point);
                                 var loc = this.computeLocation(this.startPoint, point);
@@ -371,7 +374,7 @@ LabelTool.prototype = {
                         } else if(this.drawEllipse){
                             if(!this.startPoint) return;
                             if(this.startPoint) {
-                                var point = e.pointer;
+                                point = e.pointer;
                                 if(this.isPointOutCanvas(point))
                                     point = this.limitPoint(point);
                                 this.auxBoxEllipse.set("left", this.startPoint.x);
@@ -421,7 +424,7 @@ LabelTool.prototype = {
             },
             'object:modified': (e) => {
                 if(e.target.get('type')==='ellipse'){
-        		    this.lastEllipseRatio = (e.target.rx*e.target.scaleX)/(e.target.ry*e.target.scaleY)
+                    this.lastEllipseRatio = (e.target.rx*e.target.scaleX)/(e.target.ry*e.target.scaleY)
                     if(this.lastEllipseRatio>1)this.lastEllipseRatio = 1/this.lastEllipseRatio
                 }
                 this.unlockViewer();
@@ -447,19 +450,20 @@ LabelTool.prototype = {
             this.lastZoom = this._osdViewer.viewport.getZoom(true);
         });
         this._osdViewer.addHandler('open', () => {
-/*
-    var tiledImage = this._osdViewer.world.getItemAt(0);
-    var bounds = tiledImage.getBounds();
-    this._osdViewer.viewport.fitBounds(bounds, true);*/
-            window.dispatchEvent(new Event('resize'));
-            this._osdViewer.viewport.zoomTo(2, null, true);
-            this._osdViewer.viewport.applyConstraints();
-            this.loading = false;
+                this.labelBoxes = {};
+                window.dispatchEvent(new Event('resize'));
+                this._osdViewer.viewport.zoomTo(2, null, true);
+                this._osdViewer.viewport.applyConstraints();
         });
         this._osdViewer.addHandler('viewport-change', () => {
-            
-            if(this.tempBoxData)this.loadLabelBoxes(this.tempBoxData)
-            this.tempBoxData = undefined;
+            if(this.tempBoxData){
+                this.lastZoom = this._osdViewer.viewport.getZoom(true);
+                this.lastCenter = this._osdViewer.viewport.getCenter(true)
+                this.lastSize = this._osdViewer.viewport.getContainerSize()
+                this.loadLabelBoxes(this.tempBoxData)
+                this.tempBoxData = undefined;
+
+            }
             if(!this.lastZoom)
                 this.lastZoom = this._osdViewer.viewport.getZoom(true);
             if(!this.lastCenter)
@@ -588,16 +592,13 @@ LabelTool.prototype = {
     canvas: function() {  
         return this._canvas;
     },
-    viewModeOn: function() {/*
-        if(this.drawMode || this.editMode){
-            Object.values(this.labelBoxes).forEach((object)=>{ object.set('selectable', false);object.evented = false; });
-        }*/
-                    if(this.selectedBox) {
-                        this._canvas.discardActiveObject(this.selectedBox);
-                        this.selectedBox.set('strokeDashArray', [10, 2]);
-                        this.selectedBox = null;
-                        this._cbBoxSelected(undefined)
-                    }
+    viewModeOn: function() {
+        if(this.selectedBox) {
+            this._canvas.discardActiveObject(this.selectedBox);
+            this.selectedBox.set('strokeDashArray', [10, 2]);
+            this.selectedBox = null;
+            this._cbBoxSelected(undefined)
+        }
         if(this.drawMode) {
             this.drawMode = false;
             this.hiddenXYLine();
@@ -630,18 +631,21 @@ LabelTool.prototype = {
 
         if(this.editMode) {
             this.editMode = false;
-            if(this.selectedBox) {
-                this._canvas.discardActiveObject(this.selectedBox);
-                this.selectedBox.set('strokeDashArray', [10, 2]);
-                this.selectedBox = null;
-                this._cbBoxSelected(undefined)
-            }
+            this.unselectBox();
         }
         this.lockViewer();
         this.showXYLine()
         
         this._canvas.hoverCursor = 'default';
         this._canvas.renderAll();
+    },
+    unselectBox(){
+        if(this.selectedBox) {
+            this._canvas.discardActiveObject(this.selectedBox);
+            this.selectedBox.set('strokeDashArray', [10, 2]);
+            this.selectedBox = null;
+            this._cbBoxSelected(undefined)
+        }
     },
     bringToFront: function() {
         if(this.selectedBox) {
@@ -713,7 +717,7 @@ LabelTool.prototype = {
             top: loc.top,
             rx: loc.rx,
             ry: loc.ry,
-		    angle:loc.angle,
+            angle:loc.angle,
             fill: color,
             opacity: this.opacityBox2,
             strokeWidth: 2,
@@ -757,9 +761,8 @@ LabelTool.prototype = {
     },
     addNewBox: function(labelBox) {
         this.labelBoxes[labelBox.id] = labelBox;
-        this._canvas.add(labelBox.shape);/*
-        if(Number.isInteger(labelBox.classID))
-            this.updateLabelCount(labelBox.classID, true);*/
+        this._canvas.add(labelBox.shape);
+        this.updateLabelCount(labelBox.classID, true);
     },
     computeLocation: function(start, end) {
         return {
@@ -771,7 +774,10 @@ LabelTool.prototype = {
     },
     toggleClassVisibility(classID,visible){
         for(var i in this.labelBoxes) {
-            if(this.labelBoxes[i].classID === classID)this.labelBoxes[i].shape.set('visible', visible);
+            if(this.labelBoxes[i].classID === classID){
+                this.labelBoxes[i].shape.set('visible', visible);
+                if(this.labelBoxes[i].shape === this.selectedBox) this.unselectBox();
+            }
         }
         this._canvas.renderAll();
     },
@@ -870,7 +876,7 @@ LabelTool.prototype = {
             this._canvas.remove(this.selectedBox);
             if(this.labelBoxes[this.selectedBox.tab]) {
                 //var classID = this.labelBoxes[this.selectedBox.tab].classID;
-                //this.updateLabelCount(classID, false);
+                this.updateLabelCount(this.labelBoxes[this.selectedBox.tab].classID, false);
                 delete this.labelBoxes[this.selectedBox.tab];
             }
             if(this.hoveredBox) {
@@ -894,29 +900,29 @@ LabelTool.prototype = {
     // *******************************************************
     // label box
     updateBoxClass: function(id, classID) {
-        //this.updateLabelCount(this.labelBoxes[id].classID, false);
+        this.updateLabelCount(this.labelBoxes[id].classID, false);
         this.labelBoxes[id].classID = classID;
-        //this.updateLabelCount(classID, true);
+        this.updateLabelCount(classID, true);
     },
     loadLabelBoxes: function(boxes) {
         this.removeAllBoxes();
-        var classInfo, config
+        var classInfo, config, x1, y1, w, h, x2, y2, vP1, vP2, fP1, fP2
         for(var i in boxes) {
             var box = boxes[i];
             var classID = box.class;
             if(box.type == undefined || box.type == 'rect') {
-                var x1 = box.x;
-                var y1 = box.y;
-                var w = box.w;
-                var h = box.h;
-                var x2 = x1 + w;
-                var y2 = y1 + h;
+                x1 = box.x;
+                y1 = box.y;
+                w = box.w;
+                h = box.h;
+                x2 = x1 + w;
+                y2 = y1 + h;
                 // image(slide) point to viewport(OSD)
-                var vP1 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(x1,y1));
-                var vP2 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(x2,y2));
+                vP1 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(x1,y1));
+                vP2 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(x2,y2));
                 // viewport(OSD) point to pixel(Fabric)
-                var fP1 = this._osdViewer.viewport.pixelFromPoint(vP1);
-                var fP2 = this._osdViewer.viewport.pixelFromPoint(vP2);
+                fP1 = this._osdViewer.viewport.pixelFromPoint(vP1);
+                fP2 = this._osdViewer.viewport.pixelFromPoint(vP2);
 
                 classInfo = this.labels[classID];
                 config = {
@@ -939,13 +945,12 @@ LabelTool.prototype = {
                 this.addNewBox(new LabelBoxRectangle(config));
             } else if(box.type == 'poly'){
                 var points = [];
-                var vP, fP
                 for(i in box.points) {
                     // image(slide) point to viewport(OSD)
-                    vP = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(box.points[i].x,box.points[i].y));
+                    vP1 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(box.points[i].x,box.points[i].y));
                     // viewport(OSD) point to pixel(Fabric)
-                    fP = this._osdViewer.viewport.pixelFromPoint(vP);
-                    points.push(fP);
+                    fP1 = this._osdViewer.viewport.pixelFromPoint(vP1);
+                    points.push(fP1);
                 }
                 classInfo = this.labels[classID];
                 config = {
@@ -966,23 +971,23 @@ LabelTool.prototype = {
                 this.addNewBox(boxPoly);
                 this._changeEditMode(boxPoly.shape, boxPoly.shape.cornerColor);
             }else if(box.type == 'ellipse') {
-                var x1 = box.x;
-                var y1 = box.y;
-                var w = box.rx;
-                var h = box.ry;
+                x1 = box.x;
+                y1 = box.y;
+                w = box.rx;
+                h = box.ry;
                 // image(slide) point to viewport(OSD)
-                var vP1 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(x1,y1));
-                var vP2 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(w,h));
+                vP1 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(x1,y1));
+                vP2 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(x1+w,y1+h));
                 // viewport(OSD) point to pixel(Fabric)
-                var fP1 = this._osdViewer.viewport.pixelFromPoint(vP1);
-                var fP2 = this._osdViewer.viewport.pixelFromPoint(vP2);
+                fP1 = this._osdViewer.viewport.pixelFromPoint(vP1);
+                fP2 = this._osdViewer.viewport.pixelFromPoint(vP2);
 
                 classInfo = this.labels[classID];
                 config = {
                     left: fP1.x,
                     top: fP1.y,
-                    rx: fP2.x,
-                    ry: fP2.y,
+                    rx: fP2.x-fP1.x,
+                    ry: fP2.y-fP1.y,
                     angle: box.a,
                     fill: classInfo.color + toHex(Math.round(this.opacityBox*255)),
                     opacity: this.opacityBox2,
@@ -1056,11 +1061,11 @@ LabelTool.prototype = {
                 // rectangle label box
                 x1 = item.shape.left;
                 y1 = item.shape.top;
-                x2 = item.shape.rx * item.shape.scaleX;
-                y2 = item.shape.ry * item.shape.scaleY;
+                x2 = Math.abs(item.shape.rx * item.shape.scaleX);
+                y2 = Math.abs(item.shape.ry * item.shape.scaleY);
                 // viewport(OSD) point from pixel(Fabric)
                 vP1 = this._osdViewer.viewport.pointFromPixel(new OpenSeadragon.Point(x1,y1));
-                vP2 = this._osdViewer.viewport.pointFromPixel(new OpenSeadragon.Point(x2,y2));
+                vP2 = this._osdViewer.viewport.pointFromPixel(new OpenSeadragon.Point(x1+x2,y1+y2));
                 // image(slide) point from viewport(OSD)
                 iP1 = this._osdViewer.viewport.viewportToImageCoordinates(vP1.x, vP1.y);
                 iP2 = this._osdViewer.viewport.viewportToImageCoordinates(vP2.x, vP2.y);
@@ -1069,8 +1074,8 @@ LabelTool.prototype = {
                     type: 'ellipse',
                     x: iP1.x,
                     y: iP1.y,
-                    rx: iP2.x,
-                    ry: iP2.y,
+                    rx: iP2.x-iP1.x,
+                    ry: iP2.y-iP1.y,
                     a: item.shape.angle
                 };
             }

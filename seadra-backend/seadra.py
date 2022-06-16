@@ -129,7 +129,8 @@ def newProject():
         abort(404)
     os.mkdir(path)
     configFile = os.path.join(path,'config.seadra')
-    open(os.path.join(path,'config.seadra'), 'a').close()
+    with open(configFile, 'w') as outfile:
+        outfile.write('{}')
     return {'configFile':configFile}
 
 @app.route('/get_dir_config', methods=['get'])

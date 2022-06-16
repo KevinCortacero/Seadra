@@ -213,7 +213,12 @@ export default {
                     headers: {'Content-Type': 'application/json'}
                 }).then(res=>{
                     this.displayConfig = displayConfig
-                    this.data = res.data
+                    if(Object.keys(res.data).length===0)
+                        this.data = {choices:[],
+                                    checks:[],
+                                    textfield:[],
+                                    colorsLabels:[]}
+                    else this.data = res.data
                 }).catch((error) => {
                     console.error(error);
                 });

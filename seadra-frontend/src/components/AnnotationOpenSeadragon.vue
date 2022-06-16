@@ -35,15 +35,17 @@
         <v-row>
     <v-list-item-group style="width:100%">
         <v-list-item dense
-            v-for="(label,i) in this.labels"
+            v-for="(label,i) in this.labelsAnnot"
             :key="i" 
-            @click="selectedLabelIndex = i"
+            @click="(e)=>changeLabelIndex(i,e)"
             class="label" v-bind:class="i==selectedLabelIndex?'active':''"
             v-bind:style="{'background-color': label.color}"
           >
           <!-- <v-checkbox input-value="1"></v-checkbox> -->
               <v-checkbox :on-icon="'mdi-eye'" :off-icon="'mdi-eye-off'"  @change="labelTool.toggleClassVisibility(i,$event)" :input-value=true color="black"></v-checkbox>
+          <v-badge style="width:100%" bordered :content="label.count" offset-x="10" offset-y="10">
           <v-list-item-title >{{label.name}}</v-list-item-title>
+          </v-badge>
         </v-list-item>
     </v-list-item-group>
         </v-row>
@@ -59,7 +61,8 @@
             selected_tool: undefined,
             labelBoxes: {},
             boxSelected: false,
-            selectedLabelIndex:0
+            selectedLabelIndex:0,
+            labelsAnnot: [],
         }),
         props:{
             osd: {type:Object},
@@ -91,36 +94,31 @@
             osd(newOSD){
                 if(!this.labelTool){
                     this.labelTool = new LabelTool()
-                    this.labelTool.init(newOSD,(selectedBox)=>{
+                    this.labelTool.init(newOSD,this.updateNbBox,(selectedBox)=>{
                             this.boxSelected=(selectedBox!==undefined);
                             if(selectedBox){
-                                this.selectedLabelIndex =selectedBox.classID;
+                                this.selectedLabelIndex = selectedBox.classID;
                             }
                         })
-                    this.initEventKeyboard()
-                    this.$emit('update:getLabelBoxes',()=>{return this.labelTool.saveLabelBoxes()})
-                    this.$emit('update:setLabelBoxes',(data)=>{ 
-                        console.log("load boxes !!!!")
-                            this.loading = false;
-                            this.labelTool.tempBoxData = data;
-                            this.labelTool.labels = this.labels;
-                            this.updateLabels()
-                    })
-                    window.addEventListener('resize', ()=>this.labelTool.resize());
                 }
             },
             labels(){
                 this.selectedLabelIndex = 0
+                this.labelsAnnot = this.labels.map((l)=>{return{...l,count:0}})
                 this.updateLabels()
             }
         },
         methods: {
+            changeLabelIndex(i,e){
+                if(!e.target.classList.contains("v-input--selection-controls__ripple")) //TODO: burk
+                    this.selectedLabelIndex = i
+            },
+            updateNbBox(classID,plus){
+                if(Number.isInteger(classID)) {
+                    this.labelsAnnot[classID].count += plus*2-1;
+                }
+            },/*
             initEventKeyboard(){
-                this.osd.canvas.addEventListener('keydown', (e) => {
-                    if(e.key === 'f') {
-                        return false;
-                    }
-                })/*
                 document.onkeydown = (e)=> {
                     if(e.target === this.osd.canvas)/*
                     if (e.key === 'Delete') {
@@ -144,14 +142,22 @@
                         if(e.ctrlKey)
                             this.labelTool.saveLabelBoxes()
                     }
-                };*/
-            },
+                };
+            },*/
             updateLabels(){
-                console.log(this.labels[this.selectedLabelIndex])
                 this.labelTool.changeLabel(this.labels[this.selectedLabelIndex])
             },
         },
         mounted() {
+                    //this.initEventKeyboard()
+                    this.$emit('update:getLabelBoxes',()=>{return this.labelTool.saveLabelBoxes()})
+                    this.$emit('update:setLabelBoxes',(data)=>{ 
+                            this.loading = false;
+                            this.labelTool.tempBoxData = data;
+                            this.labelTool.labels = this.labels;
+                            this.updateLabels()
+                    })
+                    window.addEventListener('resize', ()=>{if(this.labelTool)this.labelTool.resize()});
         },
         unmounted() {
             window.removeEventListener('resize', this.labelTool.resize);

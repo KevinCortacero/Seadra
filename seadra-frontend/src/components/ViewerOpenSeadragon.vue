@@ -1,5 +1,13 @@
 <template>
+<div style="width:100%; height:100%">
+<v-overlay :value="overlay" :absolute="true">
+      <v-progress-circular
+        indeterminate
+        size="64"
+      ></v-progress-circular>
+    </v-overlay>
     <div id="openseadragon" style="width:100%; height:100%"></div>
+</div>
 </template>
 
 <script>
@@ -26,6 +34,7 @@
         preserveImageSizeOnResize:true,
         navigatorId: 'view-nav'
       },
+      overlay:false
      }),
     props:{
       filePath: {type:String},
@@ -38,6 +47,7 @@
     },
     methods: {
       read_slide(filepath) {
+        this.overlay = true
         var ext = filepath.split('.').pop()
         if(['png', 'jpg', 'jpeg'].includes(ext.toLowerCase())){
           this.viewer.open({
@@ -56,13 +66,25 @@
           //}
           });
         }
+      },
 
+      initViewer(){
+        this.viewer = OpenSeadragon(this.options);
+        this.viewer.canvas.id = "openseadragon_canvas"
+        this.$emit('update:osd', this.viewer)
+        this.viewer.canvas.addEventListener('keydown', (e) => {
+            if(e.key === 'f') {
+                return false;
+            }
+        })
+        
+        this.viewer.addHandler('viewport-change', () => {
+          this.overlay = false
+        })
       }
     },
     mounted() {
-      this.viewer = OpenSeadragon(this.options);
-      this.viewer.canvas.id = "openseadragon_canvas"
-      this.$emit('update:osd', this.viewer)
+      this.initViewer()
     }
   }
 </script>
