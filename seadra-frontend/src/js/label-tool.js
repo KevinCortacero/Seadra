@@ -1,6 +1,6 @@
 import {fabric} from 'fabric';
 import OpenSeadragon from 'openseadragon'
-import {LabelBoxRectangle,LabelBoxPolygon} from './label-box'
+import {LabelBoxRectangle,LabelBoxPolygon,LabelBoxEllipse} from './label-box'
 
 function toHex(d) {
     return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase()
@@ -10,6 +10,9 @@ function sqLen(p1,p2){
     var dx = (p1.x-p2.x)
     var dy = (p1.y-p2.y)
     return dx*dx+dy*dy
+}
+function len(p1,p2){
+    return Math.sqrt(sqLen(p1,p2))
 }
 function LabelTool() {
     // main components
@@ -30,6 +33,8 @@ function LabelTool() {
     this.endPoint = null;
     this.mouseOut = false;
     this.drawRectangle = true;
+    this.drawEllipse = false;
+    this.drawPoly = true;
 
    // auxiliary box, line, polygon
    this.auxBoxRectangle = null;
@@ -52,7 +57,7 @@ function LabelTool() {
         color: null
     }
     
-
+    this.lastEllipseRatio = 0.5
     // label box for current slide
     this.labelBoxes = {};
     this.saveState = true;
@@ -69,6 +74,7 @@ LabelTool.prototype = {
         this.initFabric();
         this.initAuxLine();
         this.initAuxBoxRectangle();
+        this.initAuxBoxEllipse();
         this.initCusEvent();
         //this.initLabelClass();
         this.viewModeOn();
@@ -164,6 +170,29 @@ LabelTool.prototype = {
         this._canvas.add(this.auxBoxRectangle.shape);
         //this.updateBoxClass(this.auxBoxRectangle.get('tab'),this.selectedClass.id);
     },
+    initAuxBoxEllipse: function() {
+        var elli = {
+            left: 0,
+            top: 0,
+            rx: 0,
+            ry: 0,
+            fill: this.selectedClass.color + toHex(Math.round(this.opacityBox*255)),
+         //  fill: (this.selectedClass.id)?this.selectedClass.color + '66':'rgba(160,160,160,0.4)',
+            opacity: this.opacityBox2,
+            visible: false,
+            strokeWidth: 2,
+            originX:'center',
+            originY:'center',
+            stroke: this.selectedClass.color,
+          //  stroke: (this.selectedClass.id)?this.selectedClass.color:'rgba(80,80,80,1)',// "#880E4F",
+            strokeUniform: true,
+            tab: 'auxbox'
+        };
+        
+        this.auxBoxEllipse = new LabelBoxEllipse(elli);
+        this._canvas.add(this.auxBoxEllipse.shape);
+        //this.updateBoxClass(this.auxBoxRectangle.get('tab'),this.selectedClass.id);
+    },
     initAuxBoxPolygon: function(points) {
         var polygon = {
             points: points,
@@ -242,8 +271,15 @@ LabelTool.prototype = {
                         this.auxBoxRectangle.set("fill", this.selectedClass.color + toHex(Math.round(this.opacityBox*255)),);
                         this.auxBoxRectangle.set("stroke", this.selectedClass.color);
                     }
-                    else {
+                    else if(this.drawPoly){
                         this.addPolyPoint(e.pointer);
+                        this._canvas.renderAll();
+                    }
+                    else if(this.drawEllipse){
+                        this.drawing = true;
+                        this.startPoint = e.pointer;
+                        this.auxBoxEllipse.set("fill", this.selectedClass.color + toHex(Math.round(this.opacityBox*255)),);
+                        this.auxBoxEllipse.set("stroke", this.selectedClass.color);
                         this._canvas.renderAll();
                     }
                 }
@@ -270,13 +306,26 @@ LabelTool.prototype = {
                         var newBox = this.newLabelBoxRectangle(loc);
                         this.addNewBox(newBox);
                         this.saveState = false;
-                        //this._canvas.setActiveObject(newBox.shape);
-                        //this.selectedBox = newBox.shape;
-                        //this.editModeOn(); //TODO: check
-                        this.drawModeOn(true);
+                        //this.drawModeOn(true);
                     }
                     this.drawing = false;
                     this.startPoint = null;
+                } else if(this.drawing && this.drawEllipse){
+                    this.auxBoxEllipse.set("visible", false);
+                    var point = e.pointer;
+                    if(this.isPointOutCanvas(point))
+                        point = this.limitPoint(point);
+                    var loc = this.computeLocation(this.startPoint, point);
+
+                    if(this.isRational(loc)) {
+                        var newBox = this.newLabelBoxEllipse({top:this.auxBoxEllipse.shape.top,left:this.auxBoxEllipse.shape.left,rx:this.auxBoxEllipse.shape.rx,ry:this.auxBoxEllipse.shape.ry,angle:this.auxBoxEllipse.shape.angle});
+                        this.addNewBox(newBox);
+                        this.saveState = false;
+                        //this.drawModeOn(true);
+                    }
+                    this.drawing = false;
+                    this.startPoint = null;
+
                 }
                 if(this.boxDrag) this.boxDrag = false;
             },
@@ -302,12 +351,9 @@ LabelTool.prototype = {
                                 this.auxBoxRectangle.set("height", loc.height);
                                 this.auxBoxRectangle.set("visible", true);
                             }
-                            else {
-                                this.startPoint = e.pointer;
-                            }
                         }
                         // draw ploygon box
-                        else {
+                        else if(this.drawPoly){
                             if(!this.startPoint) return;
                             if(!this.endPoint) {
                                 this.auxLineToStart.set({'x1':this.startPoint.x, 'y1': this.startPoint.y});
@@ -322,7 +368,22 @@ LabelTool.prototype = {
                             if(this.mouseDown)
                             if(sqLen(newPoint,this.auxPoints[this.auxPoints.length-1])>350) this.addPolyPoint(newPoint)
                             this.endPolyDraw(newPoint)
-                        } 
+                        } else if(this.drawEllipse){
+                            if(!this.startPoint) return;
+                            if(this.startPoint) {
+                                var point = e.pointer;
+                                if(this.isPointOutCanvas(point))
+                                    point = this.limitPoint(point);
+                                this.auxBoxEllipse.set("left", this.startPoint.x);
+                                this.auxBoxEllipse.set("top", this.startPoint.y);
+                                var ry = len(point,this.startPoint)
+                                this.auxBoxEllipse.set("ry", ry);
+                                this.auxBoxEllipse.set("rx", ry*this.lastEllipseRatio);
+                                this.auxBoxEllipse.set("angle", Math.atan2(point.x-this.startPoint.x, this.startPoint.y-point.y)* (180 / Math.PI));
+                                this.auxBoxEllipse.set("visible", true);
+                            }
+
+                        }
                     }
                     this._canvas.renderAll();
                 }
@@ -349,13 +410,20 @@ LabelTool.prototype = {
             'object:scaling':() => {
                 this.lockViewer();
             },
+            'object:rotating':() => {
+                this.lockViewer();
+            },
             'object:moved':() => {
                 this.boxDrag = false;
             },
             'object:scaled':() => {
                 // temporarily useless
             },
-            'object:modified': () => {
+            'object:modified': (e) => {
+                if(e.target.get('type')==='ellipse'){
+        		    this.lastEllipseRatio = (e.target.rx*e.target.scaleX)/(e.target.ry*e.target.scaleY)
+                    if(this.lastEllipseRatio>1)this.lastEllipseRatio = 1/this.lastEllipseRatio
+                }
                 this.unlockViewer();
                 this.saveState = false;
             }
@@ -428,7 +496,7 @@ LabelTool.prototype = {
         })
     },
     endPolyDraw: function(auto){
-        if(this.drawMode && this.drawing && !this.drawRectangle) {
+        if(this.drawMode && this.drawing && this.drawEllipse) {
             if(this.auxPoints.length < 3) return;
             if(auto){
                 var d = sqLen(this.auxBoxPolygon.shape.points[0],auto)
@@ -556,7 +624,9 @@ LabelTool.prototype = {
     drawModeOn: function(mode) {
 
         this.drawMode = true;
-        this.drawRectangle = mode;
+        this.drawRectangle = mode==='rect';
+        this.drawEllipse = mode==='ellipse';
+        this.drawPoly = mode==='poly';
 
         if(this.editMode) {
             this.editMode = false;
@@ -625,6 +695,37 @@ LabelTool.prototype = {
             tab: classID
         }
         return new LabelBoxRectangle(boxConfig);
+    },
+    newLabelBoxEllipse: function(loc) {
+        var color, stroke, classID
+        if(this.selectedClass.id != null) {
+            color = this.selectedClass.color + toHex(Math.round(this.opacityBox*255));
+            stroke = this.selectedClass.color;
+            classID = this.selectedClass.id;
+        }
+        else {
+            color = 'rgba(160,160,160,'+this.opacityBox+')'
+            stroke = 'rgba(80,80,80,1)'
+            classID = null;
+        }
+        var boxConfig = {
+            left: loc.left,
+            top: loc.top,
+            rx: loc.rx,
+            ry: loc.ry,
+		    angle:loc.angle,
+            fill: color,
+            opacity: this.opacityBox2,
+            strokeWidth: 2,
+            strokeDashArray: [8, 2],
+            stroke: stroke,
+            cornerColor: stroke,
+            strokeUniform: true,
+            originX:'center',
+            originY:'center',
+            tab: classID
+        }
+        return new LabelBoxEllipse(boxConfig);
     },
     newLabelBoxPolygon: function(points) {
         var color, stroke, classID
@@ -705,6 +806,16 @@ LabelTool.prototype = {
                     points[j].x = points[j].x * deltaZoom;
                     points[j].y = points[j].y * deltaZoom;
                 }
+            }
+            else if(box.type == 'ellipse') {
+                x = (box.shape.left - currentPoint.x) * deltaZoom + lastPoint.x + offsetXDelta;
+                y = (box.shape.top - currentPoint.y) * deltaZoom + lastPoint.y + offsetYDelta;
+                w = box.shape.rx * deltaZoom;
+                h = box.shape.ry * deltaZoom;
+                box.shape.set('left', x);
+                box.shape.set('top', y);
+                box.shape.set('rx', w);
+                box.shape.set('ry', h);
             }
         }
     },
@@ -826,8 +937,7 @@ LabelTool.prototype = {
                     tab: classID
                 }
                 this.addNewBox(new LabelBoxRectangle(config));
-            }
-            else {
+            } else if(box.type == 'poly'){
                 var points = [];
                 var vP, fP
                 for(i in box.points) {
@@ -855,6 +965,37 @@ LabelTool.prototype = {
                 var boxPoly = new LabelBoxPolygon(config)
                 this.addNewBox(boxPoly);
                 this._changeEditMode(boxPoly.shape, boxPoly.shape.cornerColor);
+            }else if(box.type == 'ellipse') {
+                var x1 = box.x;
+                var y1 = box.y;
+                var w = box.rx;
+                var h = box.ry;
+                // image(slide) point to viewport(OSD)
+                var vP1 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(x1,y1));
+                var vP2 = this._osdViewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(w,h));
+                // viewport(OSD) point to pixel(Fabric)
+                var fP1 = this._osdViewer.viewport.pixelFromPoint(vP1);
+                var fP2 = this._osdViewer.viewport.pixelFromPoint(vP2);
+
+                classInfo = this.labels[classID];
+                config = {
+                    left: fP1.x,
+                    top: fP1.y,
+                    rx: fP2.x,
+                    ry: fP2.y,
+                    angle: box.a,
+                    fill: classInfo.color + toHex(Math.round(this.opacityBox*255)),
+                    opacity: this.opacityBox2,
+                    strokeWidth: 2,
+                    strokeDashArray: [8, 2],
+                    stroke: classInfo.color,
+                    cornerColor: classInfo.color,
+                    strokeUniform: true,
+                    originX:'center',
+                    originY:'center',
+                    tab: classID
+                }
+                this.addNewBox(new LabelBoxEllipse(config));
             }
         }
         this.saveState = true;
@@ -885,7 +1026,7 @@ LabelTool.prototype = {
                     h: iP2.y - iP1.y
                 };
             }
-            else {
+            else if(item.type == 'poly'){
                 // polygon label box
                 var fPs = [];
                 for(var j in item.shape.points) {
@@ -910,6 +1051,27 @@ LabelTool.prototype = {
                     class: item.classID,
                     type: 'poly',
                     points: points
+                };
+            } else if(item.type == 'ellipse') {
+                // rectangle label box
+                x1 = item.shape.left;
+                y1 = item.shape.top;
+                x2 = item.shape.rx * item.shape.scaleX;
+                y2 = item.shape.ry * item.shape.scaleY;
+                // viewport(OSD) point from pixel(Fabric)
+                vP1 = this._osdViewer.viewport.pointFromPixel(new OpenSeadragon.Point(x1,y1));
+                vP2 = this._osdViewer.viewport.pointFromPixel(new OpenSeadragon.Point(x2,y2));
+                // image(slide) point from viewport(OSD)
+                iP1 = this._osdViewer.viewport.viewportToImageCoordinates(vP1.x, vP1.y);
+                iP2 = this._osdViewer.viewport.viewportToImageCoordinates(vP2.x, vP2.y);
+                box = {
+                    class: item.classID,
+                    type: 'ellipse',
+                    x: iP1.x,
+                    y: iP1.y,
+                    rx: iP2.x,
+                    ry: iP2.y,
+                    a: item.shape.angle
                 };
             }
             boxes.push(box);

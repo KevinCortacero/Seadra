@@ -12,12 +12,12 @@
                 <v-btn :value="'fabric-rect'">
                     <v-icon>mdi-shape-rectangle-plus</v-icon>
                 </v-btn>
-                <v-btn :value="'fabric-polygon'">
-                    <v-icon>mdi-vector-polygon</v-icon>
-                </v-btn><!--
                 <v-btn :value="'fabric-ellipse'">
                     <v-icon>mdi-shape-circle-plus</v-icon>
-                </v-btn>-->
+                </v-btn>
+                <v-btn :value="'fabric-polygon'">
+                    <v-icon>mdi-vector-polygon</v-icon>
+                </v-btn>
             </v-btn-toggle>
             <div class="v-item-group v-btn-toggle primary--text" :class="$vuetify.theme.dark?'theme--dark':'theme--light'">
                 <v-btn v-if="boxSelected" @click="labelTool.removeSelected()">
@@ -77,11 +77,11 @@
                     } else if(newSlected==="fabric-edit"){
                         this.labelTool.editModeOn();
                     } else if(newSlected==="fabric-rect"){
-                        this.labelTool.drawModeOn(true)
+                        this.labelTool.drawModeOn('rect')
                     } else if(newSlected==="fabric-polygon") {
-                        this.labelTool.drawModeOn(false)
+                        this.labelTool.drawModeOn('poly')
                     } else if(newSlected==="fabric-ellipse") {
-                        this.labelTool.drawModeOn(false)
+                        this.labelTool.drawModeOn('ellipse')
                     }
                 }
             },
@@ -116,7 +116,13 @@
         },
         methods: {
             initEventKeyboard(){
+                this.osd.canvas.addEventListener('keydown', (e) => {
+                    if(e.key === 'f') {
+                        return false;
+                    }
+                })/*
                 document.onkeydown = (e)=> {
+                    if(e.target === this.osd.canvas)/*
                     if (e.key === 'Delete') {
                         this.labelTool.removeSelected();
                     }
@@ -138,7 +144,7 @@
                         if(e.ctrlKey)
                             this.labelTool.saveLabelBoxes()
                     }
-                };
+                };*/
             },
             updateLabels(){
                 console.log(this.labels[this.selectedLabelIndex])

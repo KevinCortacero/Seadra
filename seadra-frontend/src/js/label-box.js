@@ -25,6 +25,22 @@ LabelBoxRectangle.prototype = {
     }
 }
 
+function LabelBoxEllipse(config) {
+    this.id = guid();
+    this.classID = null;
+    this.shape = this.init(config);
+    this.type = 'ellipse';
+}
+LabelBoxEllipse.prototype = {
+    init: function(config) {
+        this.classID = config.tab;
+        config.tab = this.id;
+        return new fabric.Ellipse(config); 
+    },
+    set: function(key, value) {
+        this.shape.set(key, value);
+    }
+}
 function LabelBoxPolygon(config) {
     this.id = guid();
     this.classID = null;
@@ -42,4 +58,4 @@ LabelBoxPolygon.prototype = {
     }
 }
 
-export {LabelBoxRectangle, LabelBoxPolygon}
+export {LabelBoxRectangle, LabelBoxPolygon, LabelBoxEllipse}
