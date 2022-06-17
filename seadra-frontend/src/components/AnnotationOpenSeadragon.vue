@@ -78,6 +78,7 @@
             getLabelBoxes: {type:Function},
             setLabelBoxes: {type:Function},
             labels: {type:Array},
+            stateSave: {type:Boolean},
         },
         watch: {
             // whenever question changes, this function will run
@@ -105,7 +106,7 @@
             osd(newOSD){
                 if(!this.labelTool){
                     this.labelTool = new LabelTool()
-                    this.labelTool.init(newOSD,this.updateNbBox,(selectedBox)=>{
+                    this.labelTool.init(newOSD,this.updateNbBox,this.onChange,(selectedBox)=>{
                             this.boxSelected=(selectedBox!==undefined);
                             if(selectedBox){
                                 this.selectedLabelIndex = selectedBox.classID;
@@ -128,6 +129,9 @@
                 if(Number.isInteger(classID)) {
                     this.labelsAnnot[classID].count += plus*2-1;
                 }
+            },
+            onChange(){
+                this.$emit('update:stateSave',true)
             },/*
             initEventKeyboard(){
                 document.onkeydown = (e)=> {

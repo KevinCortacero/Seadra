@@ -8,6 +8,7 @@
             v-bind:label="choice.name"
             outlined
             dense
+            @change="changeDetect"
           >
     </v-combobox>
     <v-combobox v-for="(check,i) in this.template.checks" :key="'check'+i"
@@ -17,10 +18,11 @@
             multiple
             outlined
             dense
+            @change="changeDetect"
           >
     </v-combobox>
-    <v-text-field v-for="(text,i) in this.template.textfield" :key="'text'+i" v-model=dataAnnotations[text] class="mx-2" v-bind:label="text"></v-text-field>
-    <v-textarea v-model=dataAnnotations.comment class="mx-2" label="comment" rows="4" prepend-icon="mdi-comment"></v-textarea>
+    <v-text-field v-for="(text,i) in this.template.textfield" :key="'text'+i" v-model=dataAnnotations[text] class="mx-2" v-bind:label="text" @change="changeDetect"></v-text-field>
+    <v-textarea v-model=dataAnnotations.comment class="mx-2" label="comment" rows="4" prepend-icon="mdi-comment" @change="changeDetect"></v-textarea>
   </v-card>
 </template>
 
@@ -40,7 +42,8 @@
         },
         props:{
             template:{type:Object},
-            annotations: {type:Object}
+            annotations: {type:Object},
+            stateSave: {type:Boolean},
         },
         computed: {
             dataAnnotations: {
@@ -70,6 +73,10 @@
                 }
                 annotations.comment=''
                 this.dataAnnotations = annotations
+                this.$emit('update:stateSave',false)
+            },
+            changeDetect(){
+                this.$emit('update:stateSave',true)
             }
         },
         mounted() {

@@ -99,10 +99,11 @@ function LabelTool() {
 }
 
 LabelTool.prototype = {
-    init: function(osd,boxCounter,cbBoxSelected) {
+    init: function(osd,boxCounter,fireChange,cbBoxSelected) {
         this.updateLabelCount = boxCounter;
-        this._osdViewer = osd
-        this._cbBoxSelected = cbBoxSelected
+        this._osdViewer = osd;
+        this._cbBoxSelected = cbBoxSelected;
+        this._fireChange = fireChange;
         this.initFabric();
         this.initAuxLine();
         this.initAuxBoxRectangle();
@@ -339,7 +340,7 @@ LabelTool.prototype = {
                     if(this.isRational(loc)) {
                         newBox = this.newLabelBoxRectangle(loc);
                         this.addNewBox(newBox);
-                        this.saveState = false;
+                        this._fireChange()
                         //this.drawModeOn(true);
                     }
                     this.drawing = false;
@@ -354,7 +355,7 @@ LabelTool.prototype = {
                     if(this.isRational(loc)) {
                         newBox = this.newLabelBoxEllipse({top:this.auxBoxEllipse.shape.top,left:this.auxBoxEllipse.shape.left,rx:this.auxBoxEllipse.shape.rx,ry:this.auxBoxEllipse.shape.ry,angle:this.auxBoxEllipse.shape.angle});
                         this.addNewBox(newBox);
-                        this.saveState = false;
+                        this._fireChange()
                         //this.drawModeOn(true);
                     }
                     this.drawing = false;
@@ -460,7 +461,7 @@ LabelTool.prototype = {
                     if(this.lastEllipseRatio>1)this.lastEllipseRatio = 1/this.lastEllipseRatio
                 }
                 this.unlockViewer();
-                this.saveState = false;
+                this._fireChange()
             }
         });
         this._osdViewer.addHandler('canvas-press', (e) => {
@@ -575,7 +576,7 @@ LabelTool.prototype = {
             //this.drawModeOn(false);
 
             this.drawing = false;
-            this.saveState = false;
+            this._fireChange()
         }
     },
     addPolyPoint: function(newPoint){
@@ -907,6 +908,7 @@ LabelTool.prototype = {
         for(var i in this.labelBoxes) {
             item = this.labelBoxes[i];
             this._canvas.remove(item.shape)
+            this.updateLabelCount(item.classID, false);
         }
         this.labelBoxes = {};
         this.selectedBox = null;
@@ -945,9 +947,12 @@ LabelTool.prototype = {
     // *******************************************************
     // label box
     updateBoxClass: function(id, classID) {
-        this.updateLabelCount(this.labelBoxes[id].classID, false);
-        this.labelBoxes[id].classID = classID;
-        this.updateLabelCount(classID, true);
+        if(this.labelBoxes[id].classID !== classID) {
+            this.updateLabelCount(this.labelBoxes[id].classID, false);
+            this.labelBoxes[id].classID = classID;
+            this.updateLabelCount(classID, true);
+            this._fireChange()
+        }
     },
     loadLabelBoxes: function(boxes) {
         this.removeAllBoxes();
