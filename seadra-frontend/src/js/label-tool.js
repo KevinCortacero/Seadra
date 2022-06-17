@@ -99,10 +99,11 @@ function LabelTool() {
 }
 
 LabelTool.prototype = {
-    init: function(osd,boxCounter,cbBoxSelected) {
+    init: function(osd,boxCounter,fireChange,cbBoxSelected) {
         this.updateLabelCount = boxCounter;
-        this._osdViewer = osd
-        this._cbBoxSelected = cbBoxSelected
+        this._osdViewer = osd;
+        this._cbBoxSelected = cbBoxSelected;
+        this._fireChange = fireChange;
         this.initFabric();
         this.initAuxLine();
         this.initAuxBoxRectangle();
@@ -339,7 +340,7 @@ LabelTool.prototype = {
                     if(this.isRational(loc)) {
                         newBox = this.newLabelBoxRectangle(loc);
                         this.addNewBox(newBox);
-                        this.saveState = false;
+                        this._fireChange()
                         //this.drawModeOn(true);
                     }
                     this.drawing = false;
@@ -354,7 +355,7 @@ LabelTool.prototype = {
                     if(this.isRational(loc)) {
                         newBox = this.newLabelBoxEllipse({top:this.auxBoxEllipse.shape.top,left:this.auxBoxEllipse.shape.left,rx:this.auxBoxEllipse.shape.rx,ry:this.auxBoxEllipse.shape.ry,angle:this.auxBoxEllipse.shape.angle});
                         this.addNewBox(newBox);
-                        this.saveState = false;
+                        this._fireChange()
                         //this.drawModeOn(true);
                     }
                     this.drawing = false;
@@ -400,9 +401,8 @@ LabelTool.prototype = {
                                 this.auxLineToEnd.set({'x2':e.pointer.x, 'y2': e.pointer.y});
                             }
                             var newPoint = {x:e.pointer.x, y:e.pointer.y};
-                            if(this.mouseDown)
-                            if(sqLen(newPoint,this.auxPoints[this.auxPoints.length-1])>350) this.addPolyPoint(newPoint)
-                            this.endPolyDraw(newPoint)
+                            if(this.mouseDown && sqLen(newPoint,this.auxPoints[this.auxPoints.length-1])>350) this.addPolyPoint(newPoint)
+                            this.endPolyDraw(newPoint);
                         } else if(this.drawEllipse){
                             if(!this.startPoint) return;
                             if(this.startPoint) {
@@ -461,7 +461,7 @@ LabelTool.prototype = {
                     if(this.lastEllipseRatio>1)this.lastEllipseRatio = 1/this.lastEllipseRatio
                 }
                 this.unlockViewer();
-                this.saveState = false;
+                this._fireChange()
             }
         });
         this._osdViewer.addHandler('canvas-press', (e) => {
@@ -535,10 +535,11 @@ LabelTool.prototype = {
         })
     },
     endPolyDraw: function(auto){
-        if(this.drawMode && this.drawing && this.drawEllipse) {
+        if(this.drawMode && this.drawing && this.drawPoly) {
             if(this.auxPoints.length < 3) return;
             if(auto){
                 var d = sqLen(this.auxBoxPolygon.shape.points[0],auto)
+                console.log(d)
                 if(d>150) return;
             }
             //this.auxPoints.splice(this.auxPoints.length-1,1);
@@ -571,11 +572,11 @@ LabelTool.prototype = {
             this._canvas.setActiveObject(newBox.shape);
             //this.selectedBox = newBox.shape;
             this._canvas.requestRenderAll();
-            //this.editModeOn(); //TODO: hum to check
-            this.drawModeOn(false);
+            //this.editModeOn();
+            //this.drawModeOn(false);
 
             this.drawing = false;
-            this.saveState = false;
+            this._fireChange()
         }
     },
     addPolyPoint: function(newPoint){
@@ -907,6 +908,7 @@ LabelTool.prototype = {
         for(var i in this.labelBoxes) {
             item = this.labelBoxes[i];
             this._canvas.remove(item.shape)
+            this.updateLabelCount(item.classID, false);
         }
         this.labelBoxes = {};
         this.selectedBox = null;
@@ -945,9 +947,12 @@ LabelTool.prototype = {
     // *******************************************************
     // label box
     updateBoxClass: function(id, classID) {
-        this.updateLabelCount(this.labelBoxes[id].classID, false);
-        this.labelBoxes[id].classID = classID;
-        this.updateLabelCount(classID, true);
+        if(this.labelBoxes[id].classID !== classID) {
+            this.updateLabelCount(this.labelBoxes[id].classID, false);
+            this.labelBoxes[id].classID = classID;
+            this.updateLabelCount(classID, true);
+            this._fireChange()
+        }
     },
     loadLabelBoxes: function(boxes) {
         this.removeAllBoxes();

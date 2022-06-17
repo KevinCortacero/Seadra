@@ -2,23 +2,32 @@
     <v-card tile style="border-radius:0px;overflow-x:hidden">
         <v-card-text>
         <v-row>
-            <v-btn-toggle v-model="selected_tool" mandatory color="primary">
-                <v-btn :value="'fabric-view'">
+            <v-btn-toggle v-model="selected_tool" mandatory color="primary" style="display:block">
+                <v-btn value="fabric-view">
                     <v-icon>mdi-drag-variant</v-icon>
                 </v-btn>
-                <v-btn :value="'fabric-edit'">
+                <v-btn value="fabric-edit">
                     <v-icon>mdi-cursor-pointer</v-icon>
                 </v-btn>
-                <v-btn :value="'fabric-rect'">
+                <v-btn value="fabric-rect">
                     <v-icon>mdi-shape-rectangle-plus</v-icon>
                 </v-btn>
-                <v-btn :value="'fabric-ellipse'">
+                <v-btn value="fabric-ellipse">
                     <v-icon>mdi-shape-circle-plus</v-icon>
                 </v-btn>
                 <v-btn :value="'fabric-polygon'">
                     <v-icon>mdi-vector-polygon</v-icon>
                 </v-btn>
-            </v-btn-toggle>
+                <v-btn value="no" v-if="boxSelected" @click="labelTool.removeSelected()">
+                    <v-icon>mdi-delete</v-icon>
+                </v-btn>
+                <v-btn  value="no" v-if="boxSelected" @click="labelTool.bringToFront()">
+                    <v-icon>mdi-arrange-bring-forward</v-icon>
+                </v-btn>
+                <v-btn  value="no" v-if="boxSelected" @click="labelTool.sendToBack()">
+                    <v-icon>mdi-arrange-send-backward</v-icon>
+                </v-btn>
+            </v-btn-toggle><!--
             <div class="v-item-group v-btn-toggle primary--text" :class="$vuetify.theme.dark?'theme--dark':'theme--light'">
                 <v-btn v-if="boxSelected" @click="labelTool.removeSelected()">
                     <v-icon>mdi-delete</v-icon>
@@ -29,7 +38,7 @@
                 <v-btn v-if="boxSelected" @click="labelTool.sendToBack()">
                     <v-icon>mdi-arrange-send-backward</v-icon>
                 </v-btn>
-            </div>
+            </div>-->
         </v-row>
 
         <v-row>
@@ -42,8 +51,8 @@
             v-bind:style="{'background-color': label.color}"
           >
           <!-- <v-checkbox input-value="1"></v-checkbox> -->
-              <v-checkbox :on-icon="'mdi-eye'" :off-icon="'mdi-eye-off'"  @change="labelTool.toggleClassVisibility(i,$event)" :input-value=true color="black"></v-checkbox>
-          <v-badge style="width:100%" bordered :content="label.count" offset-x="10" offset-y="10">
+              <v-checkbox :on-icon="'mdi-eye'" :off-icon="'mdi-eye-off'"  @change="labelTool.toggleClassVisibility(i,$event)" :input-value=true color="#333"></v-checkbox>
+          <v-badge style="width:100%;font-weight: bold;text-shadow: #fff 1px 0 10px;color:#333!important" bordered :content="label.count.toString()" offset-x="10" offset-y="10">
           <v-list-item-title >{{label.name}}</v-list-item-title>
           </v-badge>
         </v-list-item>
@@ -69,13 +78,16 @@
             getLabelBoxes: {type:Function},
             setLabelBoxes: {type:Function},
             labels: {type:Array},
+            stateSave: {type:Boolean},
         },
         watch: {
             // whenever question changes, this function will run
             
-            selected_tool(newSlected) {
+            selected_tool(newSlected,oldV) {
                 if(this.labelTool){
-                    if(newSlected==="fabric-view"){
+                    if(newSlected==="no"){
+                        setTimeout(() => this.selected_tool = oldV)
+                    } else if(newSlected==="fabric-view"){
                         this.labelTool.viewModeOn();
                     } else if(newSlected==="fabric-edit"){
                         this.labelTool.editModeOn();
@@ -94,7 +106,7 @@
             osd(newOSD){
                 if(!this.labelTool){
                     this.labelTool = new LabelTool()
-                    this.labelTool.init(newOSD,this.updateNbBox,(selectedBox)=>{
+                    this.labelTool.init(newOSD,this.updateNbBox,this.onChange,(selectedBox)=>{
                             this.boxSelected=(selectedBox!==undefined);
                             if(selectedBox){
                                 this.selectedLabelIndex = selectedBox.classID;
@@ -117,6 +129,9 @@
                 if(Number.isInteger(classID)) {
                     this.labelsAnnot[classID].count += plus*2-1;
                 }
+            },
+            onChange(){
+                this.$emit('update:stateSave',true)
             },/*
             initEventKeyboard(){
                 document.onkeydown = (e)=> {

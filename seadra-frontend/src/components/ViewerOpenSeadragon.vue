@@ -118,7 +118,7 @@
         });
       },
       sliderChange(value){
-          if(value!=this.zoom.prevValue){
+          if(value!=this.zoom.prevValue && !this.overlay){
             var factor = Math.pow( 1.1, value-this.zoom.prevValue );
             this.viewer.viewport.zoomBy(factor, null);
             this.viewer.viewport.applyConstraints();
