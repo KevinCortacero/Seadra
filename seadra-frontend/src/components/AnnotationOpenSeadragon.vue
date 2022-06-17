@@ -1,5 +1,5 @@
 <template>
-    <v-card tile style="border-radius:0px;">
+    <v-card tile style="border-radius:0px;overflow-x:hidden">
         <v-card-text>
         <v-row>
             <v-btn-toggle v-model="selected_tool" mandatory color="primary">

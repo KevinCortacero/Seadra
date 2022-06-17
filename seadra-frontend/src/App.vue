@@ -62,6 +62,7 @@
 
       <pane size="17" min-size="17" style="overflow:auto; height:100%;display:flex;flex-direction:column">
 
+        <!--<div style="width:100%;min-height: 50px;" id='scalebar'></div>-->
         <div style="width:100%;min-height: 250px;max-height: 250px;"><div id="view-nav" style="width:100%;height:100%;background-color:#424242"></div></div>
         <annotation-open-seadragon :osd="osd" :get-label-boxes.sync="getBoxes" :set-label-boxes.sync="setBoxes" :labels="labels" style="height: 100%;"/>
         <v-row align="center" justify="space-around">

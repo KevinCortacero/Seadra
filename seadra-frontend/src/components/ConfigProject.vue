@@ -196,7 +196,6 @@ export default {
         },
         computed:{
             configFileSelected(){
-                console.log(this.pathConfigFile,this.projectDirectoryTmp.slice(0,-1))
                 if(this.pathConfigFile) return this.pathConfigFile.substr(0,this.pathConfigFile.lastIndexOf('/'))===this.projectDirectoryTmp.slice(0,-1)
                 return false
             }
@@ -223,11 +222,9 @@ export default {
                     console.error(error);
                 });
             },
-            ///TODO: Ajouter des event click click droit & click molette
         },
         methods: {
             done(){
-                //TODO: remove menu from lalbels
                 axios.post(this.$request_base_url + "/write_json",{filepath:this.pathConfigFile,data:this.data}, {
                     headers: {'Content-Type': 'application/json'}
                 }).catch((error) => {
@@ -244,12 +241,9 @@ export default {
                 })
             },
             newProject(){
-                console.log(this.projectDirectoryTmp)
                 axios.post(this.$request_base_url + "/newproject", {path:this.projectDirectoryTmp+this.projectName+'/'})
                     .then(result => {
-                        console.log(this.projectDirectoryTmp+this.projectName+'/')
                         this.projectDirectoryTmp = this.projectDirectoryTmp+this.projectName+'/'
-                        console.log(result.data)
                         this.pathConfigFile = result.data.configFile
                     })
             },

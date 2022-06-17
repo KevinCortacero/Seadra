@@ -23,6 +23,7 @@
 <script>
   import OpenSeadragon from 'openseadragon'
   import axios from 'axios'
+  import scalebar from '../js/openseadragon-scalebar'
 
   export default {
     data: () => ({
@@ -66,15 +67,14 @@
             url: this.$request_base_url+'/getimg/'+window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')+'.png',
             buildPyramid: false
           })
+          this.viewer.scalebar({pixelsPerMeter: 0});
         } else if(filepath!==''){
           this.overlay = true
           var request_url = this.$request_base_url + "/get_slide_infos/"
           request_url += window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')
-          console.log("read slide: " , request_url)
           axios.get(request_url).then((result) => {
-            console.log(result.data)
             this.viewer.open(this.$request_base_url+result.data.slide);
-            //this.viewer.scalebar({pixelsPerMeter: result.mpp ? (1e6 / result.mpp) : 0});
+            this.viewer.scalebar({pixelsPerMeter: result.data.mpp ? (1e6 / parseFloat(result.data.mpp)) : 0});
           //}
           });
         } else {
@@ -85,6 +85,15 @@
       initViewer(){
         this.viewer = OpenSeadragon(this.options);
         this.viewer.canvas.id = "openseadragon_canvas"
+        this.viewer.scalebar({
+            xOffset: 10,
+            yOffset: 10,
+            barThickness: 3,
+            color: '#555555',
+            fontColor: '#333333',
+            backgroundColor: 'rgba(255, 255, 255, 0.5)',
+            //idDOM:'scalebar'
+        });
         this.$emit('update:osd', this.viewer)
         this.viewer.canvas.addEventListener('keydown', (e) => {
             if(e.key === 'f') {
@@ -118,6 +127,7 @@
       }
     },
     mounted() {
+      scalebar(OpenSeadragon)
       this.initViewer()
     }
   }
