@@ -171,17 +171,6 @@ def newProject():
         outfile.write('{}')
     return {'configFile':configFile}
 
-@app.route('/get_dir_config', methods=['get'])
-def getDirConfig():
-    return label_tool.get_dir_config()
-
-
-@app.route('/set_dir_config', methods=['post'])
-def setDirConfig():
-    label_tool.set_dir_config(request.form)
-    return "Saved successfully"
-
-
 @app.route('/getimg/<filenameB64>.png')
 def native(filenameB64):
     filepath = convertB64(filenameB64)
@@ -262,8 +251,6 @@ def slugify(text):
 
 
 if __name__ == '__main__':
-    # Load config file
-    # app.config.from_pyfile('./app_config.py')
     app.config["DEBUG"] = False
     app.config["HOST"] = "127.0.0.1"
     app.config["PORT"] = 4000

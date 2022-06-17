@@ -164,7 +164,8 @@
         window.dispatchEvent(new Event('resize'));
       },
       save_json(){
-        var filepath = this.pathConfig+"annot_" + this.imageFilePath.substr(this.imageFilePath.lastIndexOf('/')+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf('/')-1) +".json"
+        var dirSep = window.navigator.platform.toLowerCase()==='win32'?'\\':'/'
+        var filepath = this.pathConfig+"annot_" + this.imageFilePath.substr(this.imageFilePath.lastIndexOf(dirSep)+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf(dirSep)-1) +".json"
         axios.post(this.$request_base_url + "/write_json",{filepath:filepath,data:{path:this.imageFilePath,boxes:this.getBoxes(),annotations:this.annotations}}, {
             headers: {'Content-Type': 'application/json'}
         }).then(()=>{
