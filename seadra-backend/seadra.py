@@ -5,9 +5,19 @@ import threading
 import subprocess
 from flask import request
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 if "win" in sys.platform:
     # windows
-    os.environ['PATH'] = r".\bin" + ";" + os.environ['PATH']
+    os.environ['PATH'] = resource_path(r".\bin") + ";" + os.environ['PATH']
+
 
 def popen_and_call(on_exit, popen_args):
     """
@@ -29,7 +39,7 @@ def popen_and_call(on_exit, popen_args):
 def close():
     os._exit(0)
 
-popen_and_call(close, [r".\bin\seadra-frontend.exe"])
+popen_and_call(close, [resource_path(r".\bin\seadra-frontend.exe")])
 
 from flask import Flask, abort, make_response, url_for, request, send_from_directory
 from flask_cors import CORS
