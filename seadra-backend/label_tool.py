@@ -14,20 +14,9 @@ DEEPZOOM_LIMIT_BOUNDS = True
 DEEPZOOM_TILE_QUALITY = 75
 
 class LabelTool():
-    def __init__(self, config_file):
-        assert config_file, 'no config file'
-        self.config_file = config_file
-        if os.path.isfile(config_file):
-            with open(config_file, 'r', encoding='utf8') as f:
-                config = yaml.load(f, Loader=yaml.RoundTripLoader)
-                self.slide_dir = config['slide_dir']
-                self.label_dir = config['label_dir']
-                self.label_classes = config['class']
-                self.class_num = len(self.label_classes)
-                self.create_file_index()
-        else:
-            raise AssertionError(f'config file "{config_file}" not found')
-
+    def __init__(self):
+        self.create_file_index()
+        
     def create_file_index(self):
         self.slide_index = {}
         if not os.path.isdir(self.slide_dir):

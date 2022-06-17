@@ -1,7 +1,35 @@
 import os
+import sys
+import subprocess
+import threading
+import subprocess
+from flask import request
 
-# windows
-# os.environ['PATH'] = r".\bin" + ";" + os.environ['PATH']
+if "win" in sys.platform:
+    # windows
+    os.environ['PATH'] = r".\bin" + ";" + os.environ['PATH']
+
+def popen_and_call(on_exit, popen_args):
+    """
+    Runs the given args in a subprocess.Popen, and then calls the function
+    on_exit when the subprocess completes.
+    on_exit is a callable object, and popen_args is a list/tuple of args that 
+    would give to subprocess.Popen.
+    """
+    def run_in_thread(on_exit, popen_args):
+        proc = subprocess.Popen(*popen_args)
+        proc.wait()
+        on_exit()
+        return
+    thread = threading.Thread(target=run_in_thread, args=(on_exit, popen_args))
+    thread.start()
+    # returns immediately after the thread starts
+    return thread
+
+def close():
+    os._exit(0)
+
+popen_and_call(close, [r".\bin\seadra-frontend.exe"])
 
 from flask import Flask, abort, make_response, url_for, request, send_from_directory
 from flask_cors import CORS
@@ -13,7 +41,6 @@ from openslide import open_slide
 from openslide.deepzoom import DeepZoomGenerator
 import re
 from unicodedata import normalize
-from label_tool import LabelTool
 import json
 import base64
 from io import BytesIO
@@ -63,6 +90,7 @@ def load_slide(file):
         left = slide.properties[openslide.PROPERTY_NAME_BOUNDS_X]
     except KeyError:
         left = 0
+
 
     try:
         top = slide.properties[openslide.PROPERTY_NAME_BOUNDS_Y]
@@ -141,30 +169,6 @@ def getDirConfig():
 @app.route('/set_dir_config', methods=['post'])
 def setDirConfig():
     label_tool.set_dir_config(request.form)
-    return "Saved successfully"
-
-
-@app.route('/get_label_classes', methods=['get'])
-def getLabelClasses():
-    return json.dumps(label_tool.get_label_classes())
-
-
-@app.route('/set_label_classes', methods=['post'])
-def setLabelClasses():
-    data = request.get_data()
-    label_tool.set_label_classes(json.loads(data.decode("utf-8")))
-    return "Saved successfully"
-
-
-@app.route('/get_label_boxes/<_id>', methods=['get'])
-def get_label_boxes(_id):
-    return label_tool.get_label_boxes(_id, app.slides['left'], app.slides['top'])
-
-
-@app.route('/save_label_boxes', methods=['post'])
-def saveLabelBoxes():
-    data = request.get_data()
-    label_tool.save_label_boxes(json.loads(data.decode("utf-8")), app.slides['left'], app.slides['top'])
     return "Saved successfully"
 
 
@@ -249,13 +253,9 @@ def slugify(text):
 
 if __name__ == '__main__':
     # Load config file
-    app.config.from_pyfile('./app_config.py')
-    # Load slide config file
-    try:
-        slide_config = app.config['SLIDE_CONFIG']
-        label_tool = LabelTool(slide_config)
-    except IndexError:
-        if app.config['SLIDE_CONFIG'] is None:
-            parser.error('No slide config file specified')
+    # app.config.from_pyfile('./app_config.py')
+    app.config["DEBUG"] = False
+    app.config["HOST"] = "127.0.0.1"
+    app.config["PORT"] = 4000
 
     app.run(host=app.config['HOST'], port=app.config['PORT'], threaded=True)
