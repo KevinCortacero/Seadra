@@ -59,9 +59,11 @@
     },
     methods: {
       read_slide(filepath) {
+        this.viewer.close()
         var ext = filepath.split('.').pop()
         if(['png', 'jpg', 'jpeg'].includes(ext.toLowerCase())){
           this.overlay = true
+          this.viewer.close()
           this.viewer.open({
             type: 'image',
             url: this.$request_base_url+'/getimg/'+window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')+'.png',
@@ -77,8 +79,6 @@
             this.viewer.scalebar({pixelsPerMeter: result.data.mpp ? (1e6 / parseFloat(result.data.mpp)) : 0});
           //}
           });
-        } else {
-          this.viewer.close()
         }
       },
 

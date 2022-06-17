@@ -486,19 +486,28 @@ LabelTool.prototype = {
                 window.dispatchEvent(new Event('resize'));
                 this._osdViewer.viewport.zoomTo(2, null, true);
                 this._osdViewer.viewport.applyConstraints();
+                this.lockViewer();
+
+                this.lastZoom = this._osdViewer.viewport.getZoom(true);
+                this.lastCenter = this._osdViewer.viewport.getCenter(true)
+                this.lastSize = this._osdViewer.viewport.getContainerSize()
+                this.loadLabelBoxes(this.tempBoxData)
+                this.tempBoxData = undefined;
+                this.unlockViewer();
         });
         this._osdViewer.addHandler('close', () => {
             this.removeAllBoxes()
         });
-        this._osdViewer.addHandler('viewport-change', () => {
+        this._osdViewer.addHandler('viewport-change', () => {/*
             if(this.tempBoxData){
                 this.lastZoom = this._osdViewer.viewport.getZoom(true);
                 this.lastCenter = this._osdViewer.viewport.getCenter(true)
                 this.lastSize = this._osdViewer.viewport.getContainerSize()
                 this.loadLabelBoxes(this.tempBoxData)
                 this.tempBoxData = undefined;
+                this.unlockViewer();
 
-            }
+            }*/
             if(!this.lastZoom)
                 this.lastZoom = this._osdViewer.viewport.getZoom(true);
             if(!this.lastCenter)
