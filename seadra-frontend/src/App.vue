@@ -185,7 +185,7 @@
             timeout:2000
           }
             this.wantChange = false;
-            console.error(error);
+            console.log(error);
         });
       },
     toggleDarkMode: function() {
@@ -222,7 +222,7 @@
             this.annotations = res.data.annotations;
             this.setBoxes(res.data.boxes);
           }).catch((error) => {
-            console.error(error);
+              console.log(error);
               this.annotations = {};
               this.setBoxes([]);
           });
