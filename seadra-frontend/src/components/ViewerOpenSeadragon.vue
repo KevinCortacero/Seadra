@@ -1,5 +1,5 @@
 <template>
-<div style="width:100%; height:100%" class="d-flex">
+<div style="width:100%; height:100%; position:relative" class="d-flex">
 <v-overlay :value="overlay" :absolute="true">
       <v-progress-circular
         indeterminate
@@ -17,6 +17,23 @@
   v-model="zoom.current"
   step='1'
 ></v-slider>
+<v-snackbar
+      v-model="notif.show"
+      :timeout="notif.timeout"
+      :color="notif.color"
+      outlined
+    >
+      {{notif.text}}
+      <template v-slot:action="{ attrs }">
+        <v-btn
+          text
+          v-bind="attrs"
+          @click="notif.show = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
 </div>
 </template>
 
@@ -43,8 +60,9 @@
         rotationIncrement: 0,
         showNavigator: true,
         preserveImageSizeOnResize:true,
-        navigatorId: 'view-nav'
+        navigatorId: 'view-nav',
       },
+      notif:{show:false,timeout:2000,text:"",color:"success"},
       overlay:false,
       zoom:{min:0,max:1,current:1,prevValue:1}
      }),
@@ -59,11 +77,11 @@
     },
     methods: {
       read_slide(filepath) {
+        this.notif.show = false
         this.viewer.close()
         var ext = filepath.split('.').pop()
         if(['png', 'jpg', 'jpeg'].includes(ext.toLowerCase())){
           this.overlay = true
-          this.viewer.close()
           this.viewer.open({
             type: 'image',
             url: this.$request_base_url+'/getimg/'+window.btoa(unescape(encodeURIComponent(filepath))).replaceAll('=', '')+'.png',
@@ -101,7 +119,7 @@
             }
         })
         
-        this.viewer.addHandler('viewport-change', () => {
+        this.viewer.addHandler('open',()=>{
           if(this.overlay){
             this.zoom.max = Math.log(this.viewer.viewport.getMaxZoom())/Math.log(1.1)
             this.zoom.min = Math.log(this.viewer.viewport.getMinZoom())/Math.log(1.1)
@@ -110,6 +128,12 @@
         })
         this.viewer.addHandler('open-failed',()=>{
           this.overlay = false
+          this.notif = {
+            show:true,
+            text:"error while loading the image, please try again",
+            color:'error',
+            timeout:5000
+          }
         })
         this.viewer.addHandler('zoom', (e) => {
             var nZ = Math.log(e.zoom)/Math.log(1.1)

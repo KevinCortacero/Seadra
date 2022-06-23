@@ -21,7 +21,7 @@
             <v-list-item-title>..</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item v-for="(foldername, i) in folders" :key="i" @click="load_dir(foldername)" dense>
+        <v-list-item v-for="(foldername, i) in folders" :key="'d'+i" @click="load_dir(foldername)" dense>
           <v-list-item-icon>
             <v-icon> mdi-folder </v-icon>
           </v-list-item-icon>
@@ -29,7 +29,7 @@
             <v-list-item-title v-text="foldername"></v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item class="tooltip" v-for="(filename, i) in files" :key="i + filename.length"
+        <v-list-item class="tooltip" v-for="(filename, i) in files" :key="'f'+i"
           @click="load_file(filename)">
           <!-- <v-img v-bind:src="image"> -->
 
