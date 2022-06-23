@@ -74,7 +74,7 @@
         <viewer-open-seadragon :file-path="imageFilePath" :osd.sync="osd" />
       </pane>
 
-      <pane size="17" min-size="17" style="overflow:auto; height:100%;display:flex;flex-direction:column">
+      <pane size="17" min-size="17" style="overflow:hidden; height:100%;display:flex;flex-direction:column">
 
         <!--<div style="width:100%;min-height: 50px;" id='scalebar'></div>-->
         <div style="width:100%;min-height: 250px;max-height: 250px;"><div id="view-nav" style="width:100%;height:100%;background-color:#424242"></div></div>
@@ -298,4 +298,7 @@
 .splitpanes__splitter:hover:before {opacity: 1;}
 .splitpanes--vertical > .splitpanes__splitter:before {left: -4px;right: -4px;height: 100%;}
 .splitpanes--horizontal > .splitpanes__splitter:before {top: -4px;bottom: -4px;width: 100%;}
+* {
+    -ms-overflow-style: none;
+}
 </style>
