@@ -43,7 +43,7 @@
       </v-icon>
     </v-btn>
     </v-row>
-    <v-subheader>Multi Choice :</v-subheader>
+    <v-subheader>Single Choice :</v-subheader>
 <v-row v-for="(choice,i) in this.data.choices" :key="'choice'+i" dense>
     <v-col cols="3">
           <v-text-field v-model="choice.name" label="name" outlined dense :rules="[validField]"></v-text-field>
@@ -74,7 +74,7 @@
     </v-btn>
     </v-row>
 </v-row>
-    <v-subheader>Single choice :</v-subheader>
+    <v-subheader>Multi choice :</v-subheader>
 <v-row v-for="(check,i) in this.data.checks" :key="'check'+i" dense >
     <v-col cols="3">
           <v-text-field v-model="check.name" label="name" outlined dense :rules="[validField]"></v-text-field>
