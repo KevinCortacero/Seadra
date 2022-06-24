@@ -43,7 +43,7 @@
       </v-icon>
     </v-btn>
     </v-row>
-    <v-subheader>Choices :</v-subheader>
+    <v-subheader>Multi Choice :</v-subheader>
 <v-row v-for="(choice,i) in this.data.choices" :key="'choice'+i" dense>
     <v-col cols="3">
           <v-text-field v-model="choice.name" label="name" outlined dense :rules="[validField]"></v-text-field>
@@ -74,7 +74,7 @@
     </v-btn>
     </v-row>
 </v-row>
-    <v-subheader>Checks :</v-subheader>
+    <v-subheader>Single choice :</v-subheader>
 <v-row v-for="(check,i) in this.data.checks" :key="'check'+i" dense >
     <v-col cols="3">
           <v-text-field v-model="check.name" label="name" outlined dense :rules="[validField]"></v-text-field>
@@ -196,7 +196,7 @@ export default {
         },
         computed:{
             configFileSelected(){
-                if(this.pathConfigFile) return this.pathConfigFile.substr(0,this.pathConfigFile.lastIndexOf('/'))===this.projectDirectoryTmp.slice(0,-1)
+                if(this.pathConfigFile) return this.pathConfigFile.substr(0,this.pathConfigFile.lastIndexOf(this.$dirSep))===this.projectDirectoryTmp.slice(0,-1)
                 return false
             }
         },
@@ -241,9 +241,9 @@ export default {
                 })
             },
             newProject(){
-                axios.post(this.$request_base_url + "/newproject", {path:this.projectDirectoryTmp+this.projectName+'/'})
+                axios.post(this.$request_base_url + "/newproject", {path:this.projectDirectoryTmp+this.projectName+this.$dirSep})
                     .then(result => {
-                        this.projectDirectoryTmp = this.projectDirectoryTmp+this.projectName+'/'
+                        this.projectDirectoryTmp = this.projectDirectoryTmp+this.projectName+this.$dirSep
                         this.pathConfigFile = result.data.configFile
                     })
             },

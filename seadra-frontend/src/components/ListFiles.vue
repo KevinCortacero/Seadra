@@ -63,8 +63,7 @@ export default {
     timeout: 0,
     hover: false,
     image: "",
-    index: -1,
-    separatorCharacter: window.navigator.platform.toLowerCase()==='win32'?'\\':'/'
+    index: -1
   }),
   props:{
     directory: {type:String, default:"/home/"},
@@ -75,14 +74,14 @@ export default {
   emits:['update:filePath'],
   computed: {
     current_dir() {
-      let dirs = this.directory.slice(0, -1).split(this.separatorCharacter)
+      let dirs = this.directory.slice(0, -1).split(this.$dirSep)
       return dirs[dirs.length - 1]
       // return this.directory
     }
   },
   watch: {
     directoryEditor(new_dir) {
-      if (new_dir[new_dir.length - 1] === this.separatorCharacter && new_dir !== this.separatorCharacter) {
+      if (new_dir[new_dir.length - 1] === this.$dirSep && new_dir !== this.$dirSep) {
         this.list_files(new_dir)
       }
     },
@@ -135,7 +134,7 @@ export default {
     update_data(data) {
       this.files = data.files;
       this.folders = data.folders;
-      this.directoryEditor = data.currentPath + ((data.currentPath !== this.separatorCharacter) ? this.separatorCharacter : "");
+      this.directoryEditor = data.currentPath + ((data.currentPath !== this.$dirSep) ? this.$dirSep : "");
       this.$emit('update:directory',this.directoryEditor);
     }
   },
