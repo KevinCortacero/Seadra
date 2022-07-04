@@ -138,13 +138,7 @@ def list_files():
     listFiles = os.listdir(current_path)
     onlyFiles = [f for f in listFiles if os.path.isfile(os.path.join(current_path, f)) & f.lower().endswith(ext)]
     onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyFiles)]
-    
-    if request_json.get('annot_dir'):
-        annot_path = os.path.abspath(annot_path)
-        onlyAnnots = [os.path.splitext(f)[0] for f in os.listdir(annot_path) if os.path.isfile(os.path.join(annot_path, f)) & f.endswith('.json')]
-        return {'files': onlyFiles, 'folders': onlyDirs, 'currentPath': current_path, 'annotated_files': onlyAnnots}
-    else:
-        return {'files': onlyFiles, 'folders': onlyDirs, 'currentPath': current_path}
+    return {'files': onlyFiles, 'folders': onlyDirs, 'currentPath': current_path}
 
 @app.route('/thumbnail', methods=['POST'])
 def thumbnail():
