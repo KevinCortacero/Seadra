@@ -44,7 +44,8 @@
           </v-list-item-icon>
 
           <v-list-item-content>
-            <v-list-item-title v-text="filename"></v-list-item-title>
+            <v-list-item-title v-if="this.$annotated_files.has('annot_' + filename.substr(filename.lastIndexOf(this.$dirSep)+1,filename.lastIndexOf('.')-filename.lastIndexOf(this.$dirSep)-1) +'.json')" style="{ color: purple}" v-text="filename"></v-list-item-title>
+            <v-list-item-title v-else v-text="filename"></v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list-item-group>
@@ -111,13 +112,13 @@ export default {
       this.$emit('update:filePath',this.directory + filename)
     },
     load_dir(foldername) {
-      axios.post(this.$request_base_url + "/list_files", { directory: this.directoryEditor + foldername, ext:this.fileExtensions })
+      axios.post(this.$request_base_url + "/list_files", { directory: this.directoryEditor + foldername, ext:this.fileExtensions, annot_dir:this.$pathConfig })
         .then(result => {
           this.update_data(result.data)
         })
     },
     goback() {
-      axios.post(this.$request_base_url + "/list_files", { directory: this.directoryEditor + '..', ext:this.fileExtensions })
+      axios.post(this.$request_base_url + "/list_files", { directory: this.directoryEditor + '..', ext:this.fileExtensions, annot_dir:this.$pathConfig })
         .then(result => {
           this.update_data(result.data)
 
@@ -125,7 +126,7 @@ export default {
     },
 
     list_files(dir) {
-      axios.post(this.$request_base_url + "/list_files", { directory: dir, ext:this.fileExtensions })
+      axios.post(this.$request_base_url + "/list_files", { directory: dir, ext:this.fileExtensions, annot_dir:this.$pathConfig })
         .then(result => {
           this.update_data(result.data)
 
@@ -135,6 +136,7 @@ export default {
       this.files = data.files;
       this.folders = data.folders;
       this.directoryEditor = data.currentPath + ((data.currentPath !== this.$dirSep) ? this.$dirSep : "");
+      this.$emit('annotated_files', new Set(data.annotated_files));
       this.$emit('update:directory',this.directoryEditor);
     }
   },

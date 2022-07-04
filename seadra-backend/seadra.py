@@ -2,7 +2,6 @@ import os
 import sys
 import subprocess
 import threading
-import subprocess
 from flask import request
 
 def resource_path(relative_path):
@@ -16,8 +15,8 @@ def resource_path(relative_path):
 
 if "win" in sys.platform:
     # windows
-    os.environ['PATH'] = resource_path(r".\bin") + ";" + os.environ['PATH']
-
+    os.environ['PATH'] = r".\bin" + ";" + os.environ['PATH']
+    print(os.listdir(resource_path(r".\bin")))
 
 def popen_and_call(on_exit, popen_args):
     """
@@ -39,7 +38,7 @@ def popen_and_call(on_exit, popen_args):
 def close():
     os._exit(0)
 
-popen_and_call(close, [resource_path(r".\bin\seadra-frontend.exe")])
+# popen_and_call(close, [resource_path(r".\bin\seadra-frontend.exe")])
 
 from flask import Flask, abort, make_response, url_for, request, send_from_directory
 from flask_cors import CORS
@@ -132,10 +131,13 @@ def list_files():
     print(request_json)
     current_path = os.path.abspath(request_json.get('directory'))
     ext = tuple(request_json.get('ext'))
+    annot_path = request_json.get('annot_dir')
     listFiles = os.listdir(current_path)
-    onlyfiles = [f for f in listFiles if os.path.isfile(os.path.join(current_path, f)) & f.lower().endswith(ext)]
-    onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyfiles)]
-    return {'files': onlyfiles, 'folders': onlyDirs, 'currentPath': current_path}
+    onlyFiles = [f for f in listFiles if os.path.isfile(os.path.join(current_path, f)) & f.lower().endswith(ext)]
+    onlyDirs = [f for f in listFiles if os.path.isdir(os.path.join(current_path, f)) & (not (f+'.mrxs') in onlyFiles)]
+    listAnnots = os.listdir(annot_path)
+    onlyAnnots = [f for f in listAnnots if os.path.isfile(os.path.join(annot_path, f)) & '.json' in f]
+    return {'files': onlyFiles, 'folders': onlyDirs, 'currentPath': current_path, 'annotated_files': onlyAnnots}
 
 @app.route('/thumbnail', methods=['POST'])
 def thumbnail():
@@ -143,7 +145,7 @@ def thumbnail():
     current_path = request_json.get('directory')
     img = open_slide(current_path).get_thumbnail((200, 200))
 
-    img = export_img_cv2( img)
+    img = export_img_cv2(img)
     return img
 
 @app.route('/get_slide_infos/<path>')

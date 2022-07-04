@@ -126,6 +126,7 @@
     data: () => ({
       imageFilePathFromFileExplorer:undefined,
       imageFilePath:undefined,
+      annotated_files: undefined,
       directory: localStorage.directory?localStorage.directory:'/home/',
       osd:undefined,
       getBoxes:()=>{},
@@ -165,7 +166,8 @@
       },
       save_json(){
         var dirSep = window.navigator.platform.toLowerCase()==='win32'?'\\':'/'
-        var filepath = this.pathConfig+"annot_" + this.imageFilePath.substr(this.imageFilePath.lastIndexOf(dirSep)+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf(dirSep)-1) +".json"
+        var filename = "annot_" + this.imageFilePath.substr(this.imageFilePath.lastIndexOf(dirSep)+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf(dirSep)-1) +".json"
+        var filepath = this.pathConfig + filename
         axios.post(this.$request_base_url + "/write_json",{filepath:filepath,data:{path:this.imageFilePath,boxes:this.getBoxes(),annotations:this.annotations}}, {
             headers: {'Content-Type': 'application/json'}
         }).then(()=>{
@@ -176,6 +178,7 @@
             timeout:2000
           }
           this.changeFile()
+        this.annotated_files.add(filename)
 
         }).catch((error) => {
           this.notif = {
