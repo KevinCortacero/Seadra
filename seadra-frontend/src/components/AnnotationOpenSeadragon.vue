@@ -18,13 +18,13 @@
                 <v-btn :value="'fabric-polygon'">
                     <v-icon>mdi-vector-polygon</v-icon>
                 </v-btn>
-                <v-btn value="no" v-if="boxSelected" @click="labelTool.removeSelected()">
+                <v-btn value="no" v-show="boxSelected" @click="labelTool.removeSelected()">
                     <v-icon>mdi-delete</v-icon>
                 </v-btn>
-                <v-btn  value="no" v-if="boxSelected" @click="labelTool.bringToFront()">
+                <v-btn  value="no" v-show="boxSelected" @click="labelTool.bringToFront()">
                     <v-icon>mdi-arrange-bring-forward</v-icon>
                 </v-btn>
-                <v-btn  value="no" v-if="boxSelected" @click="labelTool.sendToBack()">
+                <v-btn  value="no" v-show="boxSelected" @click="labelTool.sendToBack()">
                     <v-icon>mdi-arrange-send-backward</v-icon>
                 </v-btn>
             </v-btn-toggle><!--

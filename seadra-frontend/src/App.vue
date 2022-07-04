@@ -62,7 +62,7 @@
           vertical
         >
           <v-window-item style="height:100vh">
-            <list-files :file-path.sync="imageFilePathFromFileExplorer" :directory.sync="directory" :file-extensions="['.png', '.jpg', '.jpeg', '.mrxs', '.tif', '.tiff', '.svs']"/>
+            <list-files :file-path.sync="imageFilePathFromFileExplorer" :directory.sync="directory" :colored-files="annotated_files" :image-preview='true' :file-extensions="['.png', '.jpg', '.jpeg', '.mrxs', '.tif', '.tiff', '.svs']"/>
           </v-window-item>
           <v-window-item style="height:100vh">
             <custom-labels :template="templateAnnotations" :stateSave.sync="stateSaveCustom" :annotations.sync="annotations" style="height:100%;padding:10px;overflow-y:auto" /> 
@@ -126,7 +126,7 @@
     data: () => ({
       imageFilePathFromFileExplorer:undefined,
       imageFilePath:undefined,
-      annotated_files: undefined,
+      annotated_files: [],
       directory: localStorage.directory?localStorage.directory:'/home/',
       osd:undefined,
       getBoxes:()=>{},
@@ -160,13 +160,18 @@
         this.labels = data.colorsLabels.map((l,i)=>{l.id=i;return l});
         this.imageFilePath = '';
         this.window = 0
+        axios.post(this.$request_base_url + "/list_files", { directory: this.pathConfig, ext:['.json'] })
+        .then(result => {
+          this.annotated_files = result.data.files.map(f=>f.substr(6,f.lastIndexOf('.')-6))
+          console.log(this.annotated_files)
+        })
       },
       fireResizeEvent(){
         window.dispatchEvent(new Event('resize'));
       },
       save_json(){
-        var dirSep = window.navigator.platform.toLowerCase()==='win32'?'\\':'/'
-        var filename = "annot_" + this.imageFilePath.substr(this.imageFilePath.lastIndexOf(dirSep)+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf(dirSep)-1) +".json"
+        var filenameWithoutExt = this.imageFilePath.substr(this.imageFilePath.lastIndexOf(this.$dirSep)+1,this.imageFilePath.lastIndexOf('.')-this.imageFilePath.lastIndexOf(this.$dirSep)-1)
+        var filename = "annot_" + filenameWithoutExt +".json"
         var filepath = this.pathConfig + filename
         axios.post(this.$request_base_url + "/write_json",{filepath:filepath,data:{path:this.imageFilePath,boxes:this.getBoxes(),annotations:this.annotations}}, {
             headers: {'Content-Type': 'application/json'}
@@ -178,7 +183,7 @@
             timeout:2000
           }
           this.changeFile()
-        this.annotated_files.add(filename)
+          this.annotated_files.push(filenameWithoutExt)
 
         }).catch((error) => {
           this.notif = {
