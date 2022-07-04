@@ -183,7 +183,7 @@
             timeout:2000
           }
           this.changeFile()
-          this.annotated_files.push(filenameWithoutExt)
+          if(!this.annotated_files.includes(filenameWithoutExt))this.annotated_files.push(filenameWithoutExt)
 
         }).catch((error) => {
           this.notif = {
