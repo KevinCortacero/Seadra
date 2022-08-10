@@ -9,7 +9,7 @@
         <list-files :file-path.sync="pathConfigFile" :directory.sync="projectDirectoryTmp" :file-extensions="['config.seadra']" />
       </pane>
       <pane>
-        <v-card v-if="displayConfig" style="padding-top:20px;height:100%;">
+        <v-card v-if="displayConfig" style="padding-top:20px;height:100%;overflow-y: auto;overflow-x: hidden;">
 <v-container>
 
     <v-subheader>Labels :</v-subheader>
