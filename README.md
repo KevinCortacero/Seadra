@@ -27,13 +27,13 @@ For the segmentation part, you can add as many labels as you need, name them, an
 
 Here is an example of annotation set up: 
 
-<img src="ttps://github.com/KevinCortachero/Seadra/tree/master/doc_img/setup.PNG" height="480"/>
+<img src="/doc_img/setup.PNG" height="480"/>
 
 In this example, there are 4 different labels for segmentation, 2 single-choice tags for gender and diagnosis, one multi-choice for history and a comment section.
 
 ## Get your images annotated simply and quickly
 
-<img src="https://github.com/KevinCortachero/Seadra/tree/master/doc_img/annot_demo.PNG"/>
+<img src="/doc_img/annot_demo.png" height="480"/>
 
 ## Retrieve your annotations
 
