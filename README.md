@@ -27,7 +27,7 @@ For the segmentation part, you can add as many labels as you need, name them, an
 
 Here is an example of annotation set up : 
 
-
+![setup](https://github.com/KevinCortacero/Seadra/tree/master/doc_img/setup.PNG)
 
 ## Get your images annotated simply and quickly
 
