@@ -1,7 +1,7 @@
 # Seadra
 
 Seadra is a user-friendly and fully customizable annotation application that will allow you to annotate your data with a wide range of custom labels, and faster than with other annotation software.
-It can also be used with a graphical tablet to make the annotation even faster and easier.
+It can also be used with a graphical tablet to make the annotation even faster, easier and more precise.
 
 # Windows compilation as .exe
 Go into the seadra-frontend folder
@@ -13,7 +13,16 @@ Take a coffee and smile
 
 # Why you should use Seadra
 
-<!-- Annotation time benchmark -->
+Here is a benchmark we've made comparing 3 annotation methods : QuPath, Seadra without tablet and Seadra with tablet. For each method we had 10 images to annotate, which had been selected to be of equal complexity and hadn't been seen by the expert before. Here are the results :
+
+|                | Number of features | Total time (s) | Average time by feature (s) | Average time by image (s) | Average time by feature on a case (s) | Average time of transition per case (s) |
+|----------------|--------------------|----------------|-----------------------------|---------------------------|----------------------------------------|----------------------------------------|
+| QuPath         | 44                 | 1050 s         | 23.86 s                     | 96.8 s                    | 22 s                                   | **8.2 s**                              |
+| Seadra without tablet | 32          | **680 s**      | 21.45 s                     | **56.1 s**                | 17.53 s                                | 11.9 s                                 |
+| Seadra with tablet    | **58**      | 827 s          | **13.45 s**                 | 62.5 s                    | **10.76 s**                            | 20.2 s                                 |
+
+We can see in the table that either with or without tablet Seadra is a lot faster than QuPath. Another noticeable fact is that there are more features annotated when using the tablet. It's pretty hard to truly quantify but we have observed that the specialist tends to annotate more little features while using a tablet compared to when they use the mouse and keyboard where they would regroup these small features in a single bigger one. <br>
+There is a drawback we can see in this table, which is that the time to load an image ("time of transition") is way higher when using Seadra. However, this issue has now been fixed, and some new measures need to be made but the loading time now matches QuPath.
 
 # Use Seadra for your own need
 
@@ -29,7 +38,7 @@ Here is an example of annotation set up:
 
 <img src="/doc_img/setup.PNG" height="480"/>
 
-In this example, there are 4 different labels for segmentation, 2 single-choice tags for gender and diagnosis, one multi-choice for history and a comment section.
+In this example, there are 4 different labels for segmentation, 2 single-choice tags for gender and diagnosis, one multi-choice for history, and a comment section.
 
 ## Get your images annotated simply and quickly
 
