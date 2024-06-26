@@ -1,13 +1,21 @@
-import Vue from 'vue'
+/**
+ * main.js
+ *
+ * Bootstraps Vuetify and other plugins then mounts the App`
+ */
+
+// Plugins
+import { registerPlugins } from '@/plugins'
+
+// Components
 import App from './App.vue'
-import vuetify from './plugins/vuetify'
-Vue.config.productionTip = false
 
-Vue.prototype.$request_base_url = 'http://localhost:4000'
-Vue.prototype.$dirSep = window.navigator.platform.toLowerCase()==='win32'?'\\':'/'
-// Light theme
+// Composables
+import { createApp } from 'vue'
 
-new Vue({
-  vuetify,
-  render: h => h(App)
-}).$mount('#app')
+const app = createApp(App)
+app.config.globalProperties.$request_base_url = ''
+app.config.globalProperties.$dirSep = window.navigator.platform.toLowerCase()==='win32'?'\\':'/'
+registerPlugins(app)
+
+app.mount('#app')

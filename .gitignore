@@ -3,3 +3,6 @@ seadra-backend/slides
 seadra-backend/labels
 image/*
 seadra-backend/bin/*
+
+seadra-frontend-old/*
+seadra-backend-old/*
