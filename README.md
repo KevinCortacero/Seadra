@@ -3,13 +3,11 @@
 Seadra is a user-friendly and fully customizable annotation application that will allow you to annotate your data with a wide range of custom labels, and faster than with other annotation software.
 It can also be used with a graphical tablet to make the annotation even faster, easier and more precise.
 
-# Windows compilation as .exe
-Go into the seadra-frontend folder
-Run "npm run tauri:build"
-Get the created seadra-frontend.exe and put it in seadra-backend/bin
-Go into the seadra-backend folder
-Run "pyinstaller --add-binary bin/*;bin -w seadra.py"
-Take a coffee and smile
+# .exe and compilation
+You will find a Windows .exe in the [release](https://github.com/KevinCortacero/Seadra/releases/tag/v1.0) of the project. You just have to download it and run it on your computer. <br>
+You can also compile your own executable by cloning this project on your computer, installing all the required dependencies, and then running the compilW10 script.<br>
+Scripts for .exe generation on other OS will soon be added.
+
 
 # Why you should use Seadra
 
@@ -50,4 +48,17 @@ Once saved, the annotations are stored in json files, one file for each image, n
 
 <!--Add json content-->
 
+# Authors
+
+This project has been developed in 2022 as a collaborative project between :
+<ul>
+  <li>3 interns: Jules MORATA, Clément ELOIRE, Mehdi ECH-CHOUINI</li>
+  <li>a Ph.D. student: Kevin CORTACERO</li>
+  <li>a postdodoctoral researcher: David Bernard</li>
+</ul>
+
+<br>
+
+David BERNARD is taking care of maintaining the code.<br>
+Jules MORATA has been doing the performance measurements and collecting the users feedbacks.
 
